@@ -1,67 +1,60 @@
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import type { users, Role, Prisma } from '@prisma/client';
+import type { users, Role } from '@prisma/client';
+import { registerSchema, loginSchema, type RegisterDto, type LoginDto } from '@/server/validations/auth';
 
-export interface RegisterUserInput {
-  email: string;
-  password: string;
-  first_name?: string | null;
-  last_name?: string | null;
-  second_name?: string | null;
-  phone?: string | null;
-}
 
-export async function registerUser({
-  email,
-  password,
-  first_name,
-  last_name,
-  second_name,
-  phone,
-}: RegisterUserInput): Promise<users> {
-  const normalizedEmail = String(email).trim().toLowerCase();
+export async function registerUser(data: RegisterDto): Promise<users> {
+  const normalizedEmail = data.email.trim().toLowerCase();
 
+  // Проверяем email
   const exists = await prisma.users.findUnique({
     where: { email: normalizedEmail },
   });
-
   if (exists) {
     const err = new Error('Пользователь с таким email уже существует');
     (err as any).code = 'EMAIL_TAKEN';
     throw err;
   }
 
-  const password_hash = await bcrypt.hash(password, 10);
+  // Проверяем телефон (если есть)
+  if (data.phone) {
+    const existsPhone = await prisma.users.findFirst({
+      where: { phone: data.phone },
+    });
+    if (existsPhone) {
+      const err = new Error('Пользователь с таким телефоном уже существует');
+      (err as any).code = 'PHONE_TAKEN';
+      throw err;
+    }
+  }
 
-  
-  const data: Prisma.usersUncheckedCreateInput = {
-    email: normalizedEmail,
-    password_hash,
-    role: 'customer' as Role,
-    first_name: first_name ?? null,
-    last_name: last_name ?? null,
-    second_name: second_name ?? null,
-    phone: phone ?? '',
-    created_at: new Date(),
-    active: true,
-  };
+  const password_hash = await bcrypt.hash(data.password, 10);
 
-  const user = await prisma.users.create({ data });
+  const user = await prisma.users.create({
+    data: {
+      email: normalizedEmail,
+      password_hash,
+      role: 'customer' as Role,
+      first_name: data.first_name ?? null,
+      last_name: data.last_name ?? null,
+      second_name: data.second_name ?? null,
+      phone: data.phone,
+      created_at: new Date(),
+      active: true,
+    },
+  });
+
   return user;
 }
 
-export interface LoginUserInput {
-  email: string;
-  password: string;
-  phone?: string | null;
+export async function registerUserSafe(input: unknown): Promise<users> {
+  const data = registerSchema.parse(input);
+  return registerUser(data);
 }
 
-export async function loginUser({
-  email,
-  password,
-  phone,
-}: LoginUserInput): Promise<users> {
-  const normalizedEmail = String(email).trim().toLowerCase();
+export async function loginUser(data: LoginDto): Promise<users> {
+  const normalizedEmail = data.email.trim().toLowerCase();
 
   const user = await prisma.users.findUnique({
     where: { email: normalizedEmail },
@@ -73,13 +66,13 @@ export async function loginUser({
     throw err;
   }
 
-  if (phone && user.phone && user.phone !== phone) {
+  if (data.phone && user.phone && user.phone !== data.phone) {
     const err = new Error('Неверные данные');
     (err as any).code = 'BAD_CREDENTIALS';
     throw err;
   }
 
-  const ok = await bcrypt.compare(password, user.password_hash);
+  const ok = await bcrypt.compare(data.password, user.password_hash);
   if (!ok) {
     const err = new Error('Неверный пароль');
     (err as any).code = 'BAD_PASSWORD';
@@ -87,4 +80,9 @@ export async function loginUser({
   }
 
   return user;
+}
+
+export async function loginUserSafe(input: unknown): Promise<users> {
+  const data = loginSchema.parse(input);
+  return loginUser(data);
 }

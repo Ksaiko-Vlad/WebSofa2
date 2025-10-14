@@ -12,7 +12,7 @@ const PromoCard: FC = () => {
   const showPromo = (): void => {
     if (cd.active) return;
 
-    // Копируем промокод в буфер обмена (если API доступен)
+    
     if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
       void navigator.clipboard.writeText('Divan2025').catch(() => {});
     }

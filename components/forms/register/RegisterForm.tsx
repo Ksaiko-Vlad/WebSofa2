@@ -45,7 +45,7 @@ export default function RegisterForm() {
       const r = await fetch('/api/v1/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(result.data), // ✅ отправляем уже валидные данные
+        body: JSON.stringify(result.data), 
       });
 
       const data = await r.json();
@@ -55,7 +55,7 @@ export default function RegisterForm() {
       show({
         title: 'Успешно!',
         description: 'Аккаунт создан',
-        duration: 5000,
+        duration: 6000,
       });
 
       router.push('/account');
