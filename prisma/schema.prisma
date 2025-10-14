@@ -1,0 +1,286 @@
+// schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/**
+ * ===================== ENUMS =====================
+ */
+enum Role {
+  customer
+  manager
+  driver
+  factory_worker
+  admin
+}
+
+enum ProductCategory {
+  SOFA
+  ARMCHAIR
+  PUFF
+  BED
+  TABLE
+  CHAIR
+  OTHER
+}
+
+enum OrderStatus {
+  created
+  in_production
+  ready_to_ship
+  in_transit
+  delivered
+  cancelled
+}
+
+enum DeliveryType {
+  pickup
+  home_delivery
+}
+
+enum ShipmentStatus {
+  planned
+  in_transit
+  delivered
+  cancelled
+}
+
+enum StockMoveReason {
+  receipt
+  sale
+  order_pickup
+  adjustment
+}
+
+/**
+ * ===================== MODELS =====================
+ */
+
+model users {
+  id          BigInt   @id @default(autoincrement())
+  role        Role
+  email       String   @unique
+  first_name  String?
+  second_name String?
+  last_name   String?
+  phone       String
+  created_at  DateTime @default(now())
+  active      Boolean  @default(true)
+
+  password_hash String?
+
+  // relations
+  manager_links  shop_managers[]    @relation("UserShopManagers")
+  orders_created orders[]           @relation("OrdersCreatedBy")
+  stock_moves    shop_stock_moves[] @relation("StockMoveCreatedBy")
+  shipments      shipments[]        @relation("ShipmentsDriver")
+
+  @@map("users")
+}
+
+model shops {
+  id     BigInt  @id @default(autoincrement())
+  city   String
+  street String
+  active Boolean @default(true)
+
+  // relations
+  shop_managers shop_managers[]
+  orders        orders[]           @relation("OrdersAtShop")
+  stock         shop_stock[]
+  stock_moves   shop_stock_moves[]
+
+  @@map("shops")
+}
+
+model shop_managers {
+  id      BigInt @id @default(autoincrement())
+  user_id BigInt
+  shop_id BigInt
+
+  user users @relation("UserShopManagers", fields: [user_id], references: [id], onDelete: Cascade)
+  shop shops @relation(fields: [shop_id], references: [id], onDelete: Cascade)
+
+  @@unique([shop_id, user_id])
+  @@map("shop_managers")
+}
+
+model materials {
+  id     BigInt  @id @default(autoincrement())
+  name   String
+  color  String
+  active Boolean @default(true)
+
+  variants product_variants[]
+
+  @@map("materials")
+}
+
+model products {
+  id          BigInt          @id @default(autoincrement())
+  name        String
+  description String
+  category    ProductCategory
+  active      Boolean         @default(true)
+  width_mm    Int
+  height_mm   Int
+  depth_mm    Int
+
+  variants product_variants[]
+
+  @@map("products")
+}
+
+model product_variants {
+  id          BigInt  @id @default(autoincrement())
+  product_id  BigInt
+  material_id BigInt
+  price       Decimal @db.Decimal(12, 2)
+  active      Boolean @default(true)
+  sku         String
+
+  product  products  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  material materials @relation(fields: [material_id], references: [id], onDelete: Restrict)
+
+  shop_stock       shop_stock[]
+  shop_stock_moves shop_stock_moves[]
+  order_items      order_items[]
+
+  @@unique([product_id, material_id])
+  @@index([product_id, active, price])
+  @@map("product_variants")
+}
+
+model shop_stock {
+  id                 BigInt @id @default(autoincrement())
+  shop_id            BigInt
+  product_variant_id BigInt
+  quantity           Int    @default(0)
+
+  shop           shops            @relation(fields: [shop_id], references: [id], onDelete: Cascade)
+  productVariant product_variants @relation(fields: [product_variant_id], references: [id], onDelete: Restrict)
+
+  @@unique([shop_id, product_variant_id])
+  @@index([shop_id])
+  @@map("shop_stock")
+}
+
+model shop_stock_moves {
+  id                 BigInt          @id @default(autoincrement())
+  shop_id            BigInt
+  product_variant_id BigInt
+  qty_change         Int
+  reason             StockMoveReason
+  created_at         DateTime        @default(now())
+  created_by         BigInt?
+
+  // relations
+  shop           shops            @relation(fields: [shop_id], references: [id], onDelete: Cascade)
+  productVariant product_variants @relation(fields: [product_variant_id], references: [id], onDelete: Restrict)
+  createdByUser  users?           @relation("StockMoveCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+
+  @@index([shop_id])
+  @@index([product_variant_id])
+  @@index([created_at])
+  @@map("shop_stock_moves")
+}
+
+model orders {
+  id         BigInt  @id @default(autoincrement())
+  created_by BigInt?
+  shop_id    BigInt?
+
+  // снимок данных клиента
+  customer_name        String?
+  customer_second_name String?
+  customer_last_name   String?
+  customer_phone       String?
+  customer_email       String?
+
+  // доставка/статус
+  delivery_type DeliveryType
+  status        OrderStatus
+  note          String?
+  created_at    DateTime     @default(now())
+  total_amount  Decimal      @default(0) @db.Decimal(12, 2)
+
+  // связи (минимум)
+  createdBy users? @relation("OrdersCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+  shop      shops? @relation("OrdersAtShop", fields: [shop_id], references: [id], onDelete: SetNull)
+
+  items          order_items[]
+  address        delivery_addresses?
+  shipment_links shipment_orders[]
+
+  @@index([status])
+  @@index([created_at])
+  @@index([shop_id])
+  @@map("orders")
+}
+
+model delivery_addresses {
+  id        BigInt  @id @default(autoincrement())
+  order_id  BigInt  @unique
+  city      String
+  street    String
+  house     String
+  floor     String?
+  apartment String?
+  entrance  String?
+
+  order orders @relation(fields: [order_id], references: [id], onDelete: Cascade)
+
+  @@map("delivery_addresses")
+}
+
+model order_items {
+  id                 BigInt  @id @default(autoincrement())
+  order_id           BigInt
+  product_variant_id BigInt
+  unit_price         Decimal @db.Decimal(12, 2)
+  quantity           Int
+  is_from_shop_stock Boolean @default(false)
+  line_total         Decimal @db.Decimal(12, 2)
+
+  order          orders           @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  productVariant product_variants @relation(fields: [product_variant_id], references: [id], onDelete: Restrict)
+
+  @@index([order_id])
+  @@map("order_items")
+}
+
+model shipments {
+  id          BigInt         @id @default(autoincrement())
+  driver_id   BigInt
+  planned_at  DateTime
+  status      ShipmentStatus
+  route_hint  String
+  started_at  DateTime
+  finished_at DateTime
+  comment     String?
+
+  driver users @relation("ShipmentsDriver", fields: [driver_id], references: [id], onDelete: Restrict)
+
+  orders shipment_orders[]
+
+  @@index([status])
+  @@index([planned_at])
+  @@map("shipments")
+}
+
+model shipment_orders {
+  id          BigInt @id @default(autoincrement())
+  shipment_id BigInt
+  order_id    BigInt
+
+  shipment shipments @relation(fields: [shipment_id], references: [id], onDelete: Cascade)
+  order    orders    @relation(fields: [order_id], references: [id], onDelete: Cascade)
+
+  @@unique([shipment_id, order_id])
+  @@map("shipment_orders")
+}

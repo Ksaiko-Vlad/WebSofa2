@@ -1,0 +1,8 @@
+.wrapper {place-items: center; padding: 26px 0; }
+.card {width: 100%; max-width: 520px; border:1px solid var(--border); border-radius: var(--radius); background: var(--bg); padding:20px; box-shadow: 0 2px 12px rgba(0,0,0,.04); }
+.form { display: grid; gap: 12px; margin-top: 6px; }
+.field {display: grid; gap: 6px; }
+.label {font-size: 14px; color: var(--muted); margin-left: 6px; }
+.input {padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color:var(--fg); } 
+.action {display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; margin-top: 20; }
+.title {font-size: 28px; font-weight: 800; margin-bottom: 12px; text-align: center; }

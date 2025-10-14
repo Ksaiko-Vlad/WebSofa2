@@ -1,13 +1,44 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #ffffff;
+  --fg: #111111;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --primary: #111111;
+  --primary-contrast: #ffffff;
+  --container: 1100px;
+  --radius: 12px;
+  --footer-h: 140px;
+
+  --background: var(--bg);
+  --foreground: var(--fg);
 }
 
+/* Системная тёмная тема */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg: #0a0a0a;
+    --fg: #ededed;
+
+    --border: #1f2937;
+    --muted: #9ca3af;
+
+    --primary: #ededed;
+    --primary-contrast: #0a0a0a;
+
+    --background: var(--bg);
+    --foreground: var(--fg);
   }
+
+  html {
+    color-scheme: dark;
+  }
+}
+
+/* RESETS / БАЗА */
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
 html,
@@ -17,17 +48,18 @@ body {
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: var(--fg);
+  background: var(--bg);
   font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+.site {
+  min-height: 100svh;
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr var(--footer-h);
 }
 
 a {
@@ -35,8 +67,312 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+/* Доступность */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Утилиты */
+.container {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* HEADER */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 64px;
+}
+
+.brand {
+  font-weight: 800;
+  text-decoration: none;
+  font-size: 18px;
+  letter-spacing: .3px;
+}
+
+.nav {
+  display: flex;
+  gap: 16px;
+}
+
+.nav a {
+  text-decoration: none;
+  opacity: .9;
+}
+
+.nav a:hover {
+  opacity: 1;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  text-decoration: none;
+}
+
+.icon-btn:hover {
+  background: color-mix(in oklab, var(--fg) 6%, var(--bg));
+}
+
+/* BUTTONS */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: .15s ease;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-contrast);
+  border-color: var(--primary);
+  border: 2px solid var(--border);
+  border-color: #0a0a0a;
+}
+
+.btn-primary:hover {
+  opacity: .9;
+}
+
+.btn-outline {
+  border: 1px solid var(--border);
+}
+
+.btn-outline:hover {
+  background: color-mix(in oklab, var(--fg) 6%, var(--bg));
+}
+
+.btn-ghost {
+  border: 1px solid var(--border);
+  background: transparent;
+}
+
+.btn-ghost:hover {
+  background: color-mix(in oklab, var(--fg) 6%, var(--bg));
+}
+
+button.btn {
+  -webkit-appearance: none;
+  appearance: none;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  font-weight: 600;
+}
+
+/* HERO / CARD */
+.hero {
+  display: grid;
+  place-items: center;
+  padding: 26px 0;
+}
+
+.card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.hero-card {
+  display: grid;
+  grid-template-columns: 0.9fr 0.9fr;
+  gap: 24px;
+  padding: 24px;
+}
+
+.hero-text h1 {
+  margin: 0 0 8px;
+  font-size: 32px;
+  line-height: 1.2;
+}
+
+.hero-text p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.hero-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 900px) {
+  .hero-card {
+    grid-template-columns: 1fr;
   }
+}
+
+/* FOOTER */
+.footer {
+  height: var(--footer-h);
+  overflow: hidden;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+
+}
+
+.footer-inner {
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+  padding: 16px 0;
+
+  justify-content: center;
+  justify-items: center;
+  text-align: center;
+}
+
+.footer-title {
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  text-align: center;
+}
+
+@media (max-width: 800px) {
+  .site {
+    grid-template-rows: auto 1fr auto;
+  }
+
+  .footer {
+    height: auto;
+  }
+
+  .footer-inner {
+    align-content: start;
+    justify-items: start;
+    text-align: left;
+    grid-template-columns: 1fr;
+  }
+}
+
+.toast-viewport {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1000;
+  display: grid;
+  gap: 10px;
+  width: min(360px, calc(100vw - 32px));
+}
+
+.toast {
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .15);
+  padding: 10px 12px;
+}
+
+.toast-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.toast-title {
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.toast-desc {
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.toast-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+}
+
+.toast-close:hover {
+  background: color-mix(in oklab, var(--fg) 6%, var(--bg));
+}
+
+/* РУЧНОЕ ПЕРЕКЛЮЧЕНИЕ ТЕМЫ */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --fg: #111111;
+  --border: #e5e7eb;
+  --muted: #6b7280;
+  --primary: #111111;
+  --primary-contrast: #ffffff;
+
+  --background: var(--bg);
+  --foreground: var(--fg);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0a0a0a;
+  --fg: #ededed;
+  --border: #1f2937;
+  --muted: #9ca3af;
+  --primary: #ededed;
+  --primary-contrast: #0a0a0a;
+
+  --background: var(--bg);
+  --foreground: var(--fg);
+}
+
+/* На всякий случай: тело опирается на bg/fg и после переключения темы */
+body {
+  color: var(--fg);
+  background: var(--bg);
 }
