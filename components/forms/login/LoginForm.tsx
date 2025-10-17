@@ -87,12 +87,12 @@ const LoginForm = () => {
         </form>
       </div>
 
-      <div className={s.actions} style={{ marginTop: 16 }}>
+      <div className={s.actions}>
         <button
           className="btn btn-primary"
           form="logForm"
           type="submit"
-          style={{ marginRight: 16 }}
+          
           disabled={loading}
         >
           {loading ? 'Входим…' : 'Войти'}

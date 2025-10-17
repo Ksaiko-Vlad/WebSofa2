@@ -1,38 +1,38 @@
 .wrapper {
     display: grid;
     place-items: center;
-    padding: 40px 0;
+    padding: 0px 0;
     animation: fadeIn 0.4s ease-in-out;
   }
   
   .card {
     width: 100%;
-    max-width: 680px; /* было 520px */
+    max-width: 680px;
     border: 1px solid var(--border);
     border-radius: var(--radius);
     background: var(--bg);
-    padding: 28px 32px; /* было 20px */
-    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    padding: 28px 32px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
   
   .card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
   }
   
   .title {
     font-size: 28px;
     font-weight: 800;
-    margin-bottom: 18px; /* было 12px */
+    margin-bottom: 18px;
     text-align: center;
     color: var(--fg);
   }
   
-  .form {
+  .account_form {
     display: grid;
-    gap: 16px; /* было 12px */
-    margin-top: 10px; /* было 6px */
+    gap: 16px;
+    margin-top: 10px;
   }
   
   .field {
@@ -60,25 +60,25 @@
   .input:focus {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(63,118,255,0.15);
+    box-shadow: 0 0 0 3px rgba(63, 118, 255, 0.15);
   }
   
-  .actions,
+  .input[disabled] {
+    background: #f3f3f3;
+    color: #888;
+    border-color: #ddd;
+    cursor: not-allowed;
+  }
+  
   .action {
     display: flex;
     justify-content: center;
     gap: 10px;
     flex-wrap: wrap;
-    margin-top: 24px; 
+    margin-top: 24px;
   }
   
-  /* опциональная локальная кнопка, если не используешь глобальную .btn */
-  .btn_primary {
-    padding: 10px 20px;
-    border-radius: 10px;
-    background: var(--accent);
-    color: #fff;
-    border: none;
+  .btn_primary { padding: 10px 20px; border-radius: 10px; background: var(--accent); color: #fff; border: none;
     cursor: pointer;
     font-weight: 600;
     transition: background 0.25s ease, transform 0.1s ease;
@@ -95,36 +95,13 @@
   }
   
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-.actions {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-top: 24px;
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   
-.actions :global(.btn) {
-  transition: transform 0.2s ease;
-  transform: translateZ(0); 
-}
-
-.actions :global(.btn:hover):not(:disabled) {
-  transform: scale(1.02); 
-}
-
-.actions :global(.btn:active):not(:disabled) {
-  transform: scale(0.99);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .actions :global(.btn),
-  .actions :global(.btn:hover),
-  .actions :global(.btn:active) {
-    transition: none;
-    transform: none;
-  }
-}

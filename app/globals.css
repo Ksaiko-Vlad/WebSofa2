@@ -160,7 +160,7 @@ a {
   background: var(--primary);
   color: var(--primary-contrast);
   border-color: var(--primary);
-  border: 2px solid var(--border);
+  border: 0px solid var(--border);
   border-color: #0a0a0a;
 }
 

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import ThemeToggle from '@/components/ui/ThemeToggle'
 import type { FC } from 'react';
 
-interface HeaderClientProps {
+interface HeaderProps {
   session?: Record<string, any> | null;
 }
 
@@ -21,7 +21,7 @@ const CartIcon: FC = () => (
   </svg>
 );
 
-const HeaderClient: FC<HeaderClientProps> = ({ session }) => {
+const Header: FC<HeaderProps> = ({ session }) => {
   const router = useRouter();
 
   async function logout() {
@@ -66,4 +66,4 @@ const HeaderClient: FC<HeaderClientProps> = ({ session }) => {
   );
 };
 
-export default HeaderClient;
+export default Header;

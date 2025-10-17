@@ -11,7 +11,7 @@ export default function RegisterForm() {
   const [error, setError] = useState('');
   const [ok, setOk] = useState(false);
   const router = useRouter();
-  const { show } = useToast(); 
+  const { show } = useToast();
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -28,7 +28,7 @@ export default function RegisterForm() {
       password: fd.get('password')?.toString() ?? '',
     };
 
-    
+
     const result = registerSchema.safeParse(payload);
     if (!result.success) {
       const firstError = result.error.issues[0]?.message ?? 'Ошибка ввода данных';
@@ -45,7 +45,7 @@ export default function RegisterForm() {
       const r = await fetch('/api/v1/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(result.data), 
+        body: JSON.stringify(result.data),
       });
 
       const data = await r.json();
@@ -145,16 +145,16 @@ export default function RegisterForm() {
         </form>
       </div>
 
-      <div className={s.actions} style={{ marginTop: 16 }}>
+      <div className={s.actions}>
         <button
           className="btn btn-primary"
-          style={{ marginRight: 16 }}
           disabled={loading}
           form="regForm"
           type="submit"
         >
           {loading ? 'Регистрируем…' : 'Зарегистрироваться'}
         </button>
+
         <a className="btn btn-ghost" href="/login">
           У меня уже есть аккаунт
         </a>

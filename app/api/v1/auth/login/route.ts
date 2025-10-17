@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     const user: users = await loginUser({
       email: String(email).trim().toLowerCase(),
       password,
-      phone,
+      phone: String(phone).trim().toLowerCase(),
     });
 
     const payload = {

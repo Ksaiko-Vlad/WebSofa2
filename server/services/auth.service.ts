@@ -7,7 +7,7 @@ import { registerSchema, loginSchema, type RegisterDto, type LoginDto } from '@/
 export async function registerUser(data: RegisterDto): Promise<users> {
   const normalizedEmail = data.email.trim().toLowerCase();
 
-  // Проверяем email
+  
   const exists = await prisma.users.findUnique({
     where: { email: normalizedEmail },
   });
@@ -17,7 +17,7 @@ export async function registerUser(data: RegisterDto): Promise<users> {
     throw err;
   }
 
-  // Проверяем телефон (если есть)
+  
   if (data.phone) {
     const existsPhone = await prisma.users.findFirst({
       where: { phone: data.phone },
