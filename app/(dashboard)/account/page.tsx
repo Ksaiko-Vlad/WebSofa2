@@ -37,7 +37,6 @@ export default async function AccountPage() {
   })
 
   if (!user) redirect('/login')
-  if (user.role !== 'customer') redirect('/403')
 
   return (
     <section className={s.wrapper}>

@@ -55,6 +55,7 @@ model materials {
   id       BigInt             @id @default(autoincrement())
   name     String
   color    String
+  price_per_mm3 Decimal @default(0.00000)
   active   Boolean            @default(true)
   variants product_variants[]
 

@@ -1,12 +1,16 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import ThemeToggle from '@/components/ui/ThemeToggle'
-import type { FC } from 'react';
+import type { FC } from 'react'
 
-interface HeaderProps {
-  session?: Record<string, any> | null;
+interface HeaderClientProps {
+  session?: {
+    id: number | bigint
+    role: string
+    first_name?: string | null
+  } | null
 }
 
 const CartIcon: FC = () => (
@@ -19,18 +23,19 @@ const CartIcon: FC = () => (
       fill="currentColor"
     />
   </svg>
-);
+)
 
-const Header: FC<HeaderProps> = ({ session }) => {
-  const router = useRouter();
+const HeaderClient: FC<HeaderClientProps> = ({ session }) => {
+  const router = useRouter()
 
   async function logout() {
-    await fetch('/api/v1/auth/logout', { method: 'POST' });
-    router.replace('/');
-    router.refresh();
+    await fetch('/api/v1/auth/logout', { method: 'POST' })
+    router.replace('/')
+    router.refresh()
   }
 
-  const isAuthed = !!session;
+  const isAuthed = !!session
+  const role = session?.role
 
   return (
     <header className="header">
@@ -42,7 +47,11 @@ const Header: FC<HeaderProps> = ({ session }) => {
         <nav className="nav">
           <Link href="/products">Каталог</Link>
           <Link href="/about">О нас</Link>
+
           {isAuthed && <Link href="/account">Кабинет</Link>}
+          {isAuthed && role === 'admin' && <Link href="/admin">Панель администратора</Link>}
+          {isAuthed && role === 'manager' && <Link href="/manager">Панель менеджера</Link>}
+          {isAuthed && role === 'driver' && <Link href="/driver">Панель водителя</Link>}
         </nav>
 
         <div className="actions">
@@ -63,7 +72,7 @@ const Header: FC<HeaderProps> = ({ session }) => {
         </div>
       </div>
     </header>
-  );
-};
+  )
+}
 
-export default Header;
+export default HeaderClient
