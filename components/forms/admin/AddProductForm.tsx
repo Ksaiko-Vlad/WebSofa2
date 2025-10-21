@@ -122,7 +122,10 @@ export default function AddProductForm() {
               <option value="CHAIR">Стул</option>
               <option value="TABLE">Стол</option>
               <option value="BED">Кровать</option>
-              <option value="WARDROBE">Шкаф</option>
+              <option value="SOFA">Диван</option>
+              <option value="PUFF">Пуффики</option>
+              <option value="ARMCHAIR">Кресло</option>
+              <option value="OTHER">Другое</option>
             </select>
           </label>
 
