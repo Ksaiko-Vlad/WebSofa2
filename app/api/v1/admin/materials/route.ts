@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { jsonSafe } from '@/lib/bigint'
 
 export async function GET() {
   try {
@@ -8,14 +9,8 @@ export async function GET() {
       orderBy: { id: 'asc' },
     })
 
-    // Приводим BigInt и Decimal → в обычные числа
-    const normalized = materials.map(m => ({
-      id: Number(m.id),
-      name: m.name,
-      price_per_mm3: Number(m.price_per_mm3),
-    }))
 
-    return NextResponse.json(normalized)
+    return NextResponse.json(jsonSafe(materials))
   } catch (err) {
     console.error('materials fetch error', err)
     return NextResponse.json({ message: 'Ошибка при загрузке материалов' }, { status: 500 })

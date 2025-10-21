@@ -1,0 +1,22 @@
+.badgeActive {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(0, 180, 60, 0.12);
+    color: #00a34a;
+    font-weight: 600;
+    font-size: 12px;
+    border: 1px solid rgba(0, 180, 60, 0.28);
+  }
+  
+  .badgeInactive {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(200, 0, 0, 0.08);
+    color: #c11;
+    font-weight: 600;
+    font-size: 12px;
+    border: 1px solid rgba(200, 0, 0, 0.22);
+  }
+  

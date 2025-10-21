@@ -38,6 +38,11 @@
     display: grid;
     gap: 6px;
   }
+
+  .dimensions {
+    display: grid;
+    gap: 16px;
+  }
   
   .label {
     font-size: 14px;
@@ -45,6 +50,15 @@
     margin-left: 6px;
   }
   
+.checkbox {
+  padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--fg);
+    transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
   .input,
   .textarea {
     padding: 10px 12px;
