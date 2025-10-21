@@ -3,7 +3,7 @@ import { ProductCategory } from '@prisma/client'
 
 export const materialInputSchema = z.object({
   id: z.coerce.number().int().positive('Некорректный ID материала'),
-  price_per_mm3: z.coerce.number().positive('Цена материала должна быть больше 0'),
+  price_per_mm3: z.coerce.number().positive('Цена материала должна быть больше 0').optional(),
 })
 
 export const createProductSchema = z.object({

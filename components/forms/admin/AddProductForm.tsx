@@ -6,16 +6,16 @@ import { createProductSchema, type CreateProductDto } from '@/server/validations
 import s from './AddProductForm.module.css'
 
 interface material {
-    id: number
-    name: string
-    price_per_mm3: number
+  id: number
+  name: string
+  price_per_mm3: number
 }
 
 export default function AddProductForm() {
   const [form, setForm] = useState<CreateProductDto>({
     name: '',
     description: '',
-    category: 'CHAIR', 
+    category: 'CHAIR',
     width_mm: 0,
     height_mm: 0,
     depth_mm: 0,
@@ -91,7 +91,7 @@ export default function AddProductForm() {
         <h2 className={s.title}>Добавление нового товара</h2>
 
         <form className={s.form} onSubmit={handleSubmit}>
-         
+
           <label className={s.field}>
             <span className={s.label}>Название</span>
             <input
@@ -159,32 +159,57 @@ export default function AddProductForm() {
             </label>
           </div>
 
-          <fieldset className={s.field}>
+          <fieldset className={s.materialsFieldset}>
             <span className={s.label}>Материалы</span>
-            {materialsList.map(m => (
-              <label key={m.id} className={s.checkbox}>
-                <input
-                  type="checkbox"
-                  checked={form.materials.some(sel => sel.id === m.id)}
-                  onChange={e => {
-                    const exists = form.materials.find(sel => sel.id === m.id)
-                    if (exists) {
-                      setForm({
-                        ...form,
-                        materials: form.materials.filter(sel => sel.id !== m.id),
-                      })
-                    } else {
-                      setForm({
-                        ...form,
-                        materials: [...form.materials, { id: m.id, price_per_mm3: m.price_per_mm3 }],
-                      })
-                    }
-                  }}
-                />
-                <span>{m.name}</span>
-              </label>
-            ))}
+
+            <div className={s.materialsGrid}>
+              {materialsList.map(m => {
+                const checked = form.materials.some(sel => sel.id === m.id)
+                return (
+                  <label
+                    key={m.id}
+                    className={`${s.materialCard} ${checked ? s.materialCard__selected : ''}`}
+                    title={m.name}
+                  >
+                    {/* скрытый нативный checkbox — ради доступности клавиатурой */}
+                    <input
+                      type="checkbox"
+                      className={s.checkboxNative}
+                      checked={checked}
+                      onChange={() => {
+                        const exists = form.materials.find(sel => sel.id === m.id)
+                        setForm({
+                          ...form,
+                          materials: exists
+                            ? form.materials.filter(sel => sel.id !== m.id)
+                            : [...form.materials, { id: m.id, price_per_mm3: m.price_per_mm3 }], // цену не шлём — берём из БД
+                        })
+                      }}
+                    />
+
+                    <span className={s.materialContent}>
+                      <span className={s.materialName}>{m.name}</span>
+                      {/* если на клиенте приходит price_per_m3 — просто красиво покажем */}
+                      {'price_per_m3' in m && m.price_per_m3 != null && (
+                        <span className={s.materialMeta}>
+                          {Number(m.price_per_m3).toLocaleString('ru-BY', {
+                            style: 'currency',
+                            currency: 'BYN',
+                            maximumFractionDigits: 2,
+                          })}{' '}
+                          <span className={s.perUnit}>/ м³</span>
+                        </span>
+                      )}
+                    </span>
+
+                    {/* кастомная «галочка» справа */}
+                    <span aria-hidden className={s.checkmark} />
+                  </label>
+                )
+              })}
+            </div>
           </fieldset>
+
 
           <button className="btn btn-primary" type="submit" disabled={loading}>
             {loading ? 'Добавляем…' : 'Добавить товар'}
