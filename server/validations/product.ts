@@ -8,7 +8,7 @@ export const materialInputSchema = z.object({
 
 export const createProductSchema = z.object({
   name: z.string().trim().min(3, 'Название обязательно и должно быть не короче 3 символов'),
-  description: z.string().trim().min(1, 'Описание обязательно'),               // ← обязательное
+  description: z.string().trim().min(1, 'Описание обязательно'),              
   category: z.nativeEnum(ProductCategory).refine(
     val => Object.values(ProductCategory).includes(val),
     { message: 'Укажите корректную категорию' }

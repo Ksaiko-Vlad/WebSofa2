@@ -174,7 +174,6 @@ export default function AddProductForm() {
                     className={`${s.materialCard} ${checked ? s.materialCard__selected : ''}`}
                     title={m.name}
                   >
-                    {/* скрытый нативный checkbox — ради доступности клавиатурой */}
                     <input
                       type="checkbox"
                       className={s.checkboxNative}
@@ -185,14 +184,14 @@ export default function AddProductForm() {
                           ...form,
                           materials: exists
                             ? form.materials.filter(sel => sel.id !== m.id)
-                            : [...form.materials, { id: m.id, price_per_mm3: m.price_per_mm3 }], // цену не шлём — берём из БД
+                            : [...form.materials, { id: m.id, price_per_mm3: m.price_per_mm3 }],
                         })
                       }}
                     />
 
                     <span className={s.materialContent}>
                       <span className={s.materialName}>{m.name}</span>
-                      {/* если на клиенте приходит price_per_m3 — просто красиво покажем */}
+                      
                       {'price_per_m3' in m && m.price_per_m3 != null && (
                         <span className={s.materialMeta}>
                           {Number(m.price_per_m3).toLocaleString('ru-BY', {
@@ -205,7 +204,6 @@ export default function AddProductForm() {
                       )}
                     </span>
 
-                    {/* кастомная «галочка» справа */}
                     <span aria-hidden className={s.checkmark} />
                   </label>
                 )
