@@ -1,4 +1,3 @@
-// 'use client'
 import s from './AdminMainPageForm.module.css'
 
 export default async function AdminMainPage() {
@@ -19,6 +18,14 @@ export default async function AdminMainPage() {
         <a href="/admin/users" className={s.card}>
           <h3>👥 Пользователи</h3>
           <p>Список и роли пользователей</p>
+        </a>
+        <a href="/admin/users/add" className={s.card}>
+        <h3>➕ Добавить пользователя</h3>
+        <p>Создание нового пользователя</p>
+        </a>
+        <a href="/admin/materials/add" className={s.card}>
+        <h3>➕ Добавить материал</h3>
+        <p>Добавление нового материала</p>
         </a>
         <a href="/admin/orders" className={s.card}>
           <h3>🚚 Заказы</h3>

@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     return res;
   } catch (e: any) {
     if (e instanceof Error && 'issues' in e) {
-      // ZodError
+      
       return NextResponse.json({ message: (e as any).issues[0]?.message ?? 'Неверные данные' }, { status: 400 });
     }
     if (e.code === 'EMAIL_TAKEN') {

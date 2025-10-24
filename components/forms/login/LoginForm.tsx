@@ -2,17 +2,17 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/useToast';
+import { loginSchema } from '@/server/validations/auth';
 import s from './LoginPage.module.css';
 
 const LoginForm = () => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const router = useRouter();
+  const { show } = useToast();
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError('');
-    setLoading(true);
 
     const fd = new FormData(e.currentTarget);
     const payload = {
@@ -21,27 +21,43 @@ const LoginForm = () => {
       phone: fd.get('phone')?.toString() || undefined,
     };
 
-    if (!payload.email || !payload.password) {
-      setError('Введите email и пароль');
-      setLoading(false);
+    const parsed = loginSchema.safeParse(payload);
+    if (!parsed.success) {
+      const msg = parsed.error.issues[0]?.message ?? 'Ошибка ввода данных';
+      show({
+        title: 'Ошибка входа',
+        description: msg,
+        duration: 6000,
+      });
       return;
     }
 
+    setLoading(true);
     try {
       const r = await fetch('/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(parsed.data),
       });
 
       const data = await r.json();
       if (!r.ok) throw new Error(data?.message || 'Ошибка входа');
 
+      show({
+        title: 'Успешно',
+        description: 'Вы вошли в систему',
+        duration: 5000,
+      });
+
       router.push(data.redirect ?? '/account');
       router.refresh();
     } catch (err) {
-      if (err instanceof Error) setError(err.message);
-      else setError('Неизвестная ошибка');
+      const message = err instanceof Error ? err.message : 'Неизвестная ошибка';
+      show({
+        title: 'Ошибка',
+        description: message,
+        duration: 6000,
+      });
     } finally {
       setLoading(false);
     }
@@ -92,17 +108,15 @@ const LoginForm = () => {
           className="btn btn-primary"
           form="logForm"
           type="submit"
-          
           disabled={loading}
         >
           {loading ? 'Входим…' : 'Войти'}
         </button>
+
         <a className="btn btn-ghost" href="/register">
           Создать аккаунт
         </a>
       </div>
-
-      {error && <p className="text-error" style={{ marginTop: 8 }}>{error}</p>}
     </section>
   );
 };

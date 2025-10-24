@@ -8,16 +8,12 @@ import s from './RegisterForm.module.css';
 
 export default function RegisterForm() {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [ok, setOk] = useState(false);
   const router = useRouter();
   const { show } = useToast();
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError('');
-    setOk(false);
-
+   
     const fd = new FormData(e.currentTarget);
     const payload = {
       first_name: fd.get('first_name')?.toString() ?? '',
@@ -27,7 +23,6 @@ export default function RegisterForm() {
       phone: fd.get('phone')?.toString() ?? '',
       password: fd.get('password')?.toString() ?? '',
     };
-
 
     const result = registerSchema.safeParse(payload);
     if (!result.success) {
@@ -51,18 +46,17 @@ export default function RegisterForm() {
       const data = await r.json();
       if (!r.ok) throw new Error(data?.message || 'Ошибка регистрации');
 
-      setOk(true);
       show({
         title: 'Успешно!',
         description: 'Аккаунт создан',
         duration: 6000,
       });
+      
 
       router.push('/account');
       router.refresh();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Неизвестная ошибка';
-      setError(message);
       show({
         title: 'Ошибка',
         description: message,
@@ -159,17 +153,6 @@ export default function RegisterForm() {
           У меня уже есть аккаунт
         </a>
       </div>
-
-      {error && (
-        <p className="text-error" style={{ marginTop: 8 }}>
-          {error}
-        </p>
-      )}
-      {ok && (
-        <p className="text-success" style={{ marginTop: 8 }}>
-          Регистрация успешна!
-        </p>
-      )}
     </section>
   );
 }

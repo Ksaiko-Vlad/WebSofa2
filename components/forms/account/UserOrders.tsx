@@ -1,7 +1,7 @@
 'use client'
 
 import s from './UserOrders.module.css'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useToast } from '@/hooks/useToast'
 
 interface Order {
@@ -15,8 +15,12 @@ export default function UserOrders() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const { show } = useToast()
+  const didFetch = useRef(false)
 
   useEffect(() => {
+    if (didFetch.current) return
+    didFetch.current = true
+
     async function fetchOrders() {
       try {
         const res = await fetch('/api/v1/orders/my')
