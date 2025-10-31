@@ -1,0 +1,178 @@
+.wrapper {
+  padding: 40px;
+  position: relative;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+.grid {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(4, minmax(280px, 1fr));
+}
+
+.muted {
+  color: #6b7280;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  color:#000000 !important;
+  --fg: #000000;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.productTitle {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.desc {
+  font-size: 14px;
+  color: #374151;
+}
+
+.dimensions {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 6px;
+}
+
+.price {
+  margin-top: 8px;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalCard {
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px;
+  width: min(90%, 480px);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color:#000000 !important;
+  --fg: #000000;
+}
+
+.modalClose {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.modalTitle {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.priceLarge {
+  font-size: 22px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.btnLarge {
+  background: #111827;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.btnLarge:hover {
+  background: #1f2937;
+}
+
+.select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+/* До 1200px — 3 карточки */
+@media (max-width: 1200px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(240px, 1fr));
+  }
+}
+
+/* Планшеты — 2 карточки */
+@media (max-width: 900px) {
+  .wrapper {
+    padding: 32px 24px;
+  }
+  .grid {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    gap: 20px;
+  }
+  .title {
+    font-size: 24px;
+  }
+}
+
+/* Телефоны — 1 карточка на строку */
+@media (max-width: 600px) {
+  .wrapper {
+    padding: 24px 16px;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .card {
+    padding: 16px;
+  }
+  .productTitle {
+    font-size: 18px;
+  }
+  .desc {
+    font-size: 13px;
+  }
+  .price {
+    font-size: 15px;
+  }
+  .modalCard {
+    width: 92%;
+    padding: 24px;
+  }
+  .modalTitle {
+    font-size: 20px;
+  }
+  .priceLarge {
+    font-size: 20px;
+  }
+}

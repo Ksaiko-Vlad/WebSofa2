@@ -34,7 +34,6 @@
   }
 }
 
-/* RESETS / БАЗА */
 * {
   box-sizing: border-box;
   padding: 0;
@@ -371,7 +370,6 @@ button.btn {
   --foreground: var(--fg);
 }
 
-/* На всякий случай: тело опирается на bg/fg и после переключения темы */
 body {
   color: var(--fg);
   background: var(--bg);
