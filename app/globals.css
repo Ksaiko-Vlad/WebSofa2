@@ -143,6 +143,99 @@ a {
   background: color-mix(in oklab, var(--fg) 6%, var(--bg));
 }
 
+.burger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--fg);
+}
+
+/* === АДАПТИВ === */
+
+/* 💻 до 900px — чуть компактнее */
+@media (max-width: 900px) {
+  .header-inner {
+    height: 56px;
+    padding: 0 16px;
+    gap: 12px;
+  }
+  .nav a {
+    font-size: 14px;
+  }
+  .icon-btn {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* 📱 до 768px — мобильное меню */
+@media (max-width: 768px) {
+  .header-inner {
+    height: 54px;
+    padding: 0 12px;
+  }
+
+  .nav {
+    display: none;
+    position: fixed;
+    top: 54px;
+    right: 0;
+    left: 0;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    animation: slideDown 0.2s ease;
+  }
+
+  .nav.open {
+    display: flex;
+  }
+
+  .burger {
+    display: flex;
+  }
+
+  .actions {
+    gap: 8px;
+  }
+
+  .btn {
+    font-size: 14px;
+    padding: 6px 10px;
+  }
+}
+
+/* 📱 до 480px — всё в одну линию */
+@media (max-width: 480px) {
+  .brand {
+    font-size: 16px;
+  }
+  .btn {
+    display: none; /* скрываем длинные кнопки "Войти/Выйти" */
+  }
+}
+
+/* === АНИМАЦИЯ ВЫПАДЕНИЯ === */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* BUTTONS */
 .btn {
   display: inline-flex;
@@ -286,9 +379,9 @@ button.btn {
   }
 
   .footer-inner {
-    align-content: start;
-    justify-items: start;
-    text-align: left;
+    align-content: center;
+    justify-items: center;
+    text-align: center;
     grid-template-columns: 1fr;
   }
 }

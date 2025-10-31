@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import ThemeToggle from '@/components/ui/ThemeToggle'
-import type { FC } from 'react'
+import { useEffect, useState, type FC } from 'react'
 
 interface HeaderClientProps {
   session?: {
@@ -27,6 +27,7 @@ const CartIcon: FC = () => (
 
 const HeaderClient: FC<HeaderClientProps> = ({ session }) => {
   const router = useRouter()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   async function logout() {
     await fetch('/api/v1/auth/logout', { method: 'POST' })
@@ -37,34 +38,52 @@ const HeaderClient: FC<HeaderClientProps> = ({ session }) => {
   const isAuthed = !!session
   const role = session?.role
 
+  // Закрытие меню по Esc и при переходе по ссылке
+  useEffect(() => {
+    const onEsc = (e: KeyboardEvent) => e.key === 'Escape' && setMenuOpen(false)
+    window.addEventListener('keydown', onEsc)
+    return () => window.removeEventListener('keydown', onEsc)
+  }, [])
+
   return (
     <header className="header">
       <div className="container header-inner">
-        <Link href="/" className="brand">
+        <Link href="/" className="brand" onClick={() => setMenuOpen(false)}>
           Timber&Grain
         </Link>
 
-        <nav className="nav">
-          <Link href="/products">Каталог</Link>
-          <Link href="/about">О нас</Link>
+        {/* Бургер (показывается на мобильных через CSS @media) */}
+        <button
+          className="burger"
+          aria-label="Открыть меню"
+          aria-expanded={menuOpen}
+          aria-controls="primary-nav"
+          onClick={() => setMenuOpen((v) => !v)}
+        >
+          {menuOpen ? '✕' : '☰'}
+        </button>
 
-          {isAuthed && <Link href="/account">Кабинет</Link>}
-          {isAuthed && role === 'admin' && <Link href="/admin">Панель администратора</Link>}
-          {isAuthed && role === 'manager' && <Link href="/manager">Панель менеджера</Link>}
-          {isAuthed && role === 'driver' && <Link href="/driver">Панель водителя</Link>}
+        <nav id="primary-nav" className={`nav ${menuOpen ? 'open' : ''}`}>
+          <Link href="/products" onClick={() => setMenuOpen(false)}>Каталог</Link>
+          <Link href="/about" onClick={() => setMenuOpen(false)}>О нас</Link>
+
+          {isAuthed && <Link href="/account" onClick={() => setMenuOpen(false)}>Кабинет</Link>}
+          {isAuthed && role === 'admin'   && <Link href="/admin"   onClick={() => setMenuOpen(false)}>Панель администратора</Link>}
+          {isAuthed && role === 'manager' && <Link href="/manager" onClick={() => setMenuOpen(false)}>Панель менеджера</Link>}
+          {isAuthed && role === 'driver'  && <Link href="/driver"  onClick={() => setMenuOpen(false)}>Панель водителя</Link>}
         </nav>
 
         <div className="actions">
-          <Link href="/cart" className="icon-btn" aria-label="Корзина">
+          <Link href="/cart" className="icon-btn" aria-label="Корзина" onClick={() => setMenuOpen(false)}>
             <CartIcon />
           </Link>
 
           {isAuthed ? (
-            <button className="btn btn-outline" onClick={logout}>
+            <button className="btn btn-outline" onClick={() => { setMenuOpen(false); logout(); }}>
               Выйти
             </button>
           ) : (
-            <Link href="/login" className="btn btn-outline">
+            <Link href="/login" className="btn btn-outline" onClick={() => setMenuOpen(false)}>
               Войти
             </Link>
           )}
