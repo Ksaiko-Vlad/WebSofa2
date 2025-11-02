@@ -4,12 +4,7 @@ import { useState, FormEvent, useEffect } from 'react'
 import { useToast } from '@/hooks/useToast'
 import { createProductSchema, type CreateProductDto } from '@/server/validations/product'
 import s from './AddProductForm.module.css'
-
-interface material {
-  id: number
-  name: string
-  price_per_mm3: number
-}
+import type { MaterialsForProductAdding } from '@/types/material'
 
 export default function AddProductForm() {
   const [form, setForm] = useState<CreateProductDto>({
@@ -21,7 +16,7 @@ export default function AddProductForm() {
     depth_mm: 0,
     materials: [],
   })
-  const [materialsList, setMaterialsList] = useState<material[]>([])
+  const [materialsList, setMaterialsList] = useState<MaterialsForProductAdding[]>([])
   const [loading, setLoading] = useState(false)
   const { show } = useToast()
 

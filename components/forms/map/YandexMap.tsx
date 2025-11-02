@@ -11,7 +11,6 @@ const IFRAME_SRC =
 export default function AboutUs() {
   return (
     <div className={s.wrapper}>
-      {/* Контакты */}
       <div className={s.card}>
         <h2 className={s.title}>Timber&Grain</h2>
         <p className={s.muted}>

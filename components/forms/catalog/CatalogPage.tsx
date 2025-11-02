@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { ProductDto } from '@/types/product';
+import type { ProductForUserDto } from '@/types/product';
 import ProductCard from './ProductCard';
 import s from './CatalogPage.module.css';
 
 export default function CatalogPage() {
-  const [products, setProducts] = useState<ProductDto[]>([]);
+  const [products, setProducts] = useState<ProductForUserDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
 
@@ -21,7 +21,7 @@ export default function CatalogPage() {
           signal: ac.signal,
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = (await res.json()) as ProductDto[];
+        const data = (await res.json()) as ProductForUserDto[];
         setProducts(Array.isArray(data) ? data : []);
       } catch (e: any) {
         if (e.name !== 'AbortError') setErr(e?.message ?? 'Ошибка загрузки');

@@ -3,16 +3,10 @@
 import s from './UserOrders.module.css'
 import { useEffect, useRef, useState } from 'react'
 import { useToast } from '@/hooks/useToast'
-
-interface Order {
-  id: number | string
-  created_at: string
-  total: number
-  status: string
-}
+import type { UserOrderInfo } from '@/types/order'
 
 export default function UserOrders() {
-  const [orders, setOrders] = useState<Order[]>([])
+  const [orders, setOrders] = useState<UserOrderInfo[]>([])
   const [loading, setLoading] = useState(true)
   const { show } = useToast()
   const didFetch = useRef(false)

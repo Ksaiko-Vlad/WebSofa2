@@ -3,29 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useToast } from '@/hooks/useToast'
 import s from './AdminProductList.module.css'
-
-interface ProductVariant {
-  id: number
-  price: number | string
-  sku: string
-  active: boolean
-  material: {
-    name: string
-    price_per_mm3: number
-  }
-}
-
-interface Product {
-  id: number
-  name: string
-  description: string
-  category: string
-  width_mm: number
-  height_mm: number
-  depth_mm: number
-  active: boolean
-  variants: ProductVariant[]
-}
+import type { Product } from '@/types/product'
 
 export default function AdminProductsList() {
   const [products, setProducts] = useState<Product[]>([])

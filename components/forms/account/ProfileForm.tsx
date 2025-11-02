@@ -4,19 +4,9 @@ import { useState, FormEvent } from 'react';
 import { useToast } from '@/hooks/useToast';
 import { updateProfileSchema, type UpdateProfileDto } from '@/server/validations/profile';
 import s from './ProfileForm.module.css'
+import type { UserInfo } from '@/types/user';
 
-interface Props {
-  user: {
-    id: bigint | number;
-    first_name: string | null;
-    last_name: string | null;
-    second_name: string | null;
-    email: string;
-    phone: string | null;  
-  };
-}
-
-export default function ProfileForm({ user }: Props) {
+export default function ProfileForm({ user }: UserInfo) {
   const [form, setForm] = useState({
     first_name: user.first_name ?? '',
     last_name: user.last_name ?? '',

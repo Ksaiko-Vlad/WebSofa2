@@ -1,17 +1,8 @@
 'use client'
 
-import type { ProductDto } from '@/types/product'
 import { motion, AnimatePresence } from 'framer-motion'
 import s from './CatalogPage.module.css'
-
-interface ProductModalProps {
-  product: ProductDto
-  selectedSku: string
-  setSelectedSku: (sku: string) => void
-  selectedVariant?: ProductDto['variants'][0]
-  onAddToCart: () => void
-  onClose: () => void
-}
+import type { ProductModalProps } from '@/types/product'
 
 export default function ProductModal({
   product,

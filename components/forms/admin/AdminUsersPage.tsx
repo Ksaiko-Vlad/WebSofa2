@@ -3,20 +3,10 @@
 import { useEffect, useState } from 'react'
 import { useToast } from '@/hooks/useToast'
 import s from './AdminUsersPage.module.css'
-
-interface User {
-  id: number | string
-  email: string
-  first_name: string | null
-  last_name: string | null
-  phone: string | null
-  role: string
-  active: boolean
-  created_at: string
-}
+import type { UserInfoForAdmin } from '@/types/user'
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState<User[]>([])
+  const [users, setUsers] = useState<UserInfoForAdmin[]>([])
   const [loading, setLoading] = useState(true)
   const { show } = useToast()
 

@@ -286,7 +286,6 @@ button.btn {
   font-weight: 600;
 }
 
-/* HERO / CARD */
 .hero {
   display: grid;
   place-items: center;

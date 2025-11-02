@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import Link from 'next/link';
+import Link from 'next/link'; 
 
 const Footer: FC = () => {
   const year = new Date().getFullYear();
