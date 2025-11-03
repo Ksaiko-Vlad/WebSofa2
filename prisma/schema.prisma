@@ -71,6 +71,8 @@ model products {
   width_mm    Int
   height_mm   Int
   depth_mm    Int
+  base_price  Decimal            @default(0.0)
+  image_path  String? 
   variants    product_variants[]
 
   @@map("products")

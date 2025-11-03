@@ -16,7 +16,15 @@ export const createProductSchema = z.object({
   width_mm:  z.coerce.number().int().positive('Ширина должна быть больше 0'),
   height_mm: z.coerce.number().int().positive('Высота должна быть больше 0'),
   depth_mm:  z.coerce.number().int().positive('Глубина должна быть больше 0'),
+  base_price: z.coerce.number().int().positive('Стоимость должна быть больше 0'),
   materials: z.array(materialInputSchema).min(1, 'Выберите хотя бы один материал'),
+  image: z
+    .any()
+    .refine(
+      (file) => !file || file instanceof File || file === null,
+      'Некорректный тип файла'
+    )
+    .optional()
 })
 
 export type CreateProductDto = z.infer<typeof createProductSchema>

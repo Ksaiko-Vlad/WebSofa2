@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type FC } from 'react';
+import s from './Header.module.css'
 
 const ThemeToggle: FC = () => {
   const [theme, setTheme] = useState<'light' | 'dark' | null>(null);
@@ -17,7 +18,6 @@ const ThemeToggle: FC = () => {
     try {
       localStorage.setItem('theme', next);
     } catch {
-      /* ignore */
     }
   }
 
@@ -25,7 +25,7 @@ const ThemeToggle: FC = () => {
 
   return (
     <button
-      className="icon-btn"
+      className={s.iconBtn}
       onClick={toggle}
       aria-label="Переключить тему"
       title="Переключить тему"

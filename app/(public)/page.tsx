@@ -1,18 +1,19 @@
-import Image from 'next/image';
-import Link from 'next/link';
-import type { FC } from 'react';
-import PromoCard from '@/components/forms/home/PromoCard';
+import Image from 'next/image'
+import Link from 'next/link'
+import type { FC } from 'react'
+import PromoCard from '@/components/forms/home/PromoCard'
+import s from './HomePage.module.css'
 
 const HomePage: FC = () => {
   return (
-    <section className="hero">
-      <div className="card hero-card">
-        <div className="hero-text">
+    <section className={s.hero}>
+      <div className={`card ${s.heroCard}`}>
+        <div className={s.heroText}>
           <h1>Мебель под ваш интерьер</h1>
           <p>
             Выбирайте ткань и цвет — мы изготовим и доставим. Можно забрать в удобном магазине.
           </p>
-          <div className="hero-actions">
+          <div className={s.heroActions}>
             <Link className="btn btn-primary" href="/products">
               Перейти в каталог
             </Link>
@@ -22,7 +23,7 @@ const HomePage: FC = () => {
           </div>
         </div>
 
-        <div className="hero-image">
+        <div className={s.heroImage}>
           <Image
             src="/hero.jpg"
             alt="Диван в современном интерьере"
@@ -33,9 +34,10 @@ const HomePage: FC = () => {
           />
         </div>
       </div>
+
       <PromoCard />
     </section>
-  );
-};
+  )
+}
 
-export default HomePage;
+export default HomePage

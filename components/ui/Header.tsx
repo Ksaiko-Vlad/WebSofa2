@@ -1,16 +1,17 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import ThemeToggle from '@/components/ui/ThemeToggle'
-import { useEffect, useState, type FC } from 'react'
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import ThemeToggle from '@/components/ui/ThemeToggle';
+import { useEffect, useState, type FC } from 'react';
+import s from './Header.module.css'; 
 
 interface HeaderClientProps {
   session?: {
-    id: number | bigint
-    role: string
-    first_name?: string | null
-  } | null
+    id: number | bigint;
+    role: string;
+    first_name?: string | null;
+  } | null;
 }
 
 const CartIcon: FC = () => (
@@ -23,47 +24,46 @@ const CartIcon: FC = () => (
       fill="currentColor"
     />
   </svg>
-)
+);
 
 const HeaderClient: FC<HeaderClientProps> = ({ session }) => {
-  const router = useRouter()
-  const [menuOpen, setMenuOpen] = useState(false)
+  const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   async function logout() {
-    await fetch('/api/v1/auth/logout', { method: 'POST' })
-    router.replace('/')
-    router.refresh()
+    await fetch('/api/v1/auth/logout', { method: 'POST' });
+    router.replace('/');
+    router.refresh();
   }
 
-  const isAuthed = !!session
-  const role = session?.role
+  const isAuthed = !!session;
+  const role = session?.role;
 
-  // Закрытие меню по Esc и при переходе по ссылке
   useEffect(() => {
-    const onEsc = (e: KeyboardEvent) => e.key === 'Escape' && setMenuOpen(false)
-    window.addEventListener('keydown', onEsc)
-    return () => window.removeEventListener('keydown', onEsc)
-  }, [])
+    const onEsc = (e: KeyboardEvent) => e.key === 'Escape' && setMenuOpen(false);
+    window.addEventListener('keydown', onEsc);
+    return () => window.removeEventListener('keydown', onEsc);
+  }, []);
 
   return (
-    <header className="header">
-      <div className="container header-inner">
-        <Link href="/" className="brand" onClick={() => setMenuOpen(false)}>
+    <header className={s.header}>
+      <div className={`container ${s.inner}`}>
+        <Link href="/" className={s.brand} onClick={() => setMenuOpen(false)}>
           Timber&Grain
         </Link>
 
         {/* Бургер (показывается на мобильных через CSS @media) */}
         <button
-          className="burger"
+          className={s.burger}
           aria-label="Открыть меню"
           aria-expanded={menuOpen}
           aria-controls="primary-nav"
-          onClick={() => setMenuOpen((v) => !v)}
+          onClick={() => setMenuOpen(v => !v)}
         >
           {menuOpen ? '✕' : '☰'}
         </button>
 
-        <nav id="primary-nav" className={`nav ${menuOpen ? 'open' : ''}`}>
+        <nav id="primary-nav" className={`${s.nav} ${menuOpen ? s.open : ''}`}>
           <Link href="/products" onClick={() => setMenuOpen(false)}>Каталог</Link>
           <Link href="/about" onClick={() => setMenuOpen(false)}>О нас</Link>
 
@@ -73,8 +73,8 @@ const HeaderClient: FC<HeaderClientProps> = ({ session }) => {
           {isAuthed && role === 'driver'  && <Link href="/driver"  onClick={() => setMenuOpen(false)}>Панель водителя</Link>}
         </nav>
 
-        <div className="actions">
-          <Link href="/cart" className="icon-btn" aria-label="Корзина" onClick={() => setMenuOpen(false)}>
+        <div className={s.actions}>
+          <Link href="/cart" className={s.iconBtn} aria-label="Корзина" onClick={() => setMenuOpen(false)}>
             <CartIcon />
           </Link>
 
@@ -91,7 +91,7 @@ const HeaderClient: FC<HeaderClientProps> = ({ session }) => {
         </div>
       </div>
     </header>
-  )
-}
+  );
+};
 
-export default HeaderClient
+export default HeaderClient;

@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, FormEvent, useEffect } from 'react'
+import { useState, useEffect, FormEvent } from 'react'
 import { useToast } from '@/hooks/useToast'
 import { createProductSchema, type CreateProductDto } from '@/server/validations/product'
-import s from './AddProductForm.module.css'
 import type { MaterialsForProductAdding } from '@/types/material'
+import s from './AddProductForm.module.css'
 
 export default function AddProductForm() {
   const [form, setForm] = useState<CreateProductDto>({
@@ -14,8 +14,11 @@ export default function AddProductForm() {
     width_mm: 0,
     height_mm: 0,
     depth_mm: 0,
+    base_price: 0,
     materials: [],
+    image: null,
   })
+
   const [materialsList, setMaterialsList] = useState<MaterialsForProductAdding[]>([])
   const [loading, setLoading] = useState(false)
   const { show } = useToast()
@@ -29,13 +32,17 @@ export default function AddProductForm() {
         setMaterialsList(data)
       } catch (err) {
         console.error(err)
-        show({ title: 'Ошибка', description: 'Не удалось загрузить материалы', duration: 5000 })
+        show({
+          title: 'Ошибка',
+          description: 'Не удалось загрузить материалы',
+          duration: 5000,
+        })
       }
     }
     loadMaterials()
   }, [show])
 
-  async function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
 
     const parsed = createProductSchema.safeParse(form)
@@ -48,12 +55,22 @@ export default function AddProductForm() {
       return
     }
 
+    const fd = new FormData()
+    Object.entries(parsed.data).forEach(([key, val]) => {
+      if (key === 'materials') {
+        fd.append('materials', JSON.stringify(val))
+      } else if (key === 'image' && val instanceof File) {
+        fd.append('image', val)
+      } else if (val !== null && val !== undefined) {
+        fd.append(key, String(val))
+      }
+    })
+
     setLoading(true)
     try {
       const res = await fetch('/api/v1/admin/products/create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(parsed.data),
+        body: fd,
       })
 
       const data = await res.json()
@@ -67,7 +84,9 @@ export default function AddProductForm() {
         width_mm: 0,
         height_mm: 0,
         depth_mm: 0,
+        base_price: 0,
         materials: [],
+        image: null,
       })
     } catch (err) {
       show({
@@ -86,13 +105,12 @@ export default function AddProductForm() {
         <h2 className={s.title}>Добавление нового товара</h2>
 
         <form className={s.form} onSubmit={handleSubmit}>
-
           <label className={s.field}>
             <span className={s.label}>Название</span>
             <input
               className={s.input}
               value={form.name}
-              onChange={e => setForm({ ...form, name: e.target.value })}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
               required
             />
           </label>
@@ -102,7 +120,7 @@ export default function AddProductForm() {
             <textarea
               className={s.textarea}
               value={form.description}
-              onChange={e => setForm({ ...form, description: e.target.value })}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
               required
             />
           </label>
@@ -112,81 +130,97 @@ export default function AddProductForm() {
             <select
               className={s.input}
               value={form.category}
-              onChange={e => setForm({ ...form, category: e.target.value as any })}
+              onChange={(e) => setForm({ ...form, category: e.target.value as any })}
             >
               <option value="CHAIR">Стул</option>
               <option value="TABLE">Стол</option>
               <option value="BED">Кровать</option>
               <option value="SOFA">Диван</option>
-              <option value="PUFF">Пуффики</option>
+              <option value="PUFF">Пуфф</option>
               <option value="ARMCHAIR">Кресло</option>
               <option value="OTHER">Другое</option>
             </select>
           </label>
 
           <div className={s.dimensions}>
+            {[
+              { label: 'Ширина (мм)', key: 'width_mm' },
+              { label: 'Высота (мм)', key: 'height_mm' },
+              { label: 'Глубина (мм)', key: 'depth_mm' },
+            ].map(({ label, key }) => (
+              <label key={key} className={s.field}>
+                <span className={s.label}>{label}</span>
+                <input
+                  type="number"
+                  className={s.input}
+                  value={(form as any)[key]}
+                  onChange={(e) =>
+                    setForm({ ...form, [key]: Number(e.target.value) })
+                  }
+                  required
+                />
+              </label>
+            ))}
+
             <label className={s.field}>
-              <span className={s.label}>Ширина (мм)</span>
+              <span className={s.label}>Базовая цена (BYN)</span>
               <input
                 type="number"
                 className={s.input}
-                value={form.width_mm}
-                onChange={e => setForm({ ...form, width_mm: Number(e.target.value) })}
+                value={form.base_price}
+                onChange={(e) =>
+                  setForm({ ...form, base_price: Number(e.target.value) })
+                }
                 required
               />
             </label>
+
             <label className={s.field}>
-              <span className={s.label}>Высота (мм)</span>
+              <span className={s.label}>Изображение</span>
               <input
-                type="number"
-                className={s.input}
-                value={form.height_mm}
-                onChange={e => setForm({ ...form, height_mm: Number(e.target.value) })}
-                required
-              />
-            </label>
-            <label className={s.field}>
-              <span className={s.label}>Глубина (мм)</span>
-              <input
-                type="number"
-                className={s.input}
-                value={form.depth_mm}
-                onChange={e => setForm({ ...form, depth_mm: Number(e.target.value) })}
-                required
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  setForm({ ...form, image: e.target.files?.[0] ?? null })
+                }
               />
             </label>
           </div>
 
           <fieldset className={s.materialsFieldset}>
             <span className={s.label}>Материалы</span>
-
             <div className={s.materialsGrid}>
-              {materialsList.map(m => {
-                const checked = form.materials.some(sel => sel.id === m.id)
+              {materialsList.map((m) => {
+                const checked = form.materials.some((sel) => sel.id === m.id)
                 return (
                   <label
                     key={m.id}
-                    className={`${s.materialCard} ${checked ? s.materialCard__selected : ''}`}
-                    title={m.name}
+                    className={`${s.materialCard} ${
+                      checked ? s.materialCard__selected : ''
+                    }`}
                   >
                     <input
                       type="checkbox"
                       className={s.checkboxNative}
                       checked={checked}
                       onChange={() => {
-                        const exists = form.materials.find(sel => sel.id === m.id)
+                        const exists = form.materials.find(
+                          (sel) => sel.id === m.id
+                        )
                         setForm({
                           ...form,
                           materials: exists
-                            ? form.materials.filter(sel => sel.id !== m.id)
-                            : [...form.materials, { id: m.id, price_per_mm3: m.price_per_mm3 }],
+                            ? form.materials.filter((sel) => sel.id !== m.id)
+                            : [
+                                ...form.materials,
+                                { id: m.id, price_per_mm3: m.price_per_mm3 },
+                              ],
                         })
                       }}
                     />
 
                     <span className={s.materialContent}>
                       <span className={s.materialName}>{m.name}</span>
-                      
                       {'price_per_m3' in m && m.price_per_m3 != null && (
                         <span className={s.materialMeta}>
                           {Number(m.price_per_m3).toLocaleString('ru-BY', {
@@ -205,7 +239,6 @@ export default function AddProductForm() {
               })}
             </div>
           </fieldset>
-
 
           <button className="btn btn-primary" type="submit" disabled={loading}>
             {loading ? 'Добавляем…' : 'Добавить товар'}

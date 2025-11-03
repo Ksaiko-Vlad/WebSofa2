@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import {
   createContext,
@@ -7,76 +7,77 @@ import {
   useState,
   useCallback,
   type PropsWithChildren,
-} from 'react';
+} from 'react'
+import s from './Toast.module.css' 
 
 export interface ToastData {
-  id?: string;
-  title?: string;
-  description?: string;
-  duration?: number; // миллисекунды
+  id?: string
+  title?: string
+  description?: string
+  duration?: number 
 }
 
 export interface ToastAPI {
-  show: (toast: ToastData) => string;
-  dismiss: (id: string) => void;
+  show: (toast: ToastData) => string
+  dismiss: (id: string) => void
 }
 
-const ToastCtx = createContext<ToastAPI | null>(null);
+const ToastCtx = createContext<ToastAPI | null>(null)
 
 export const ToastProvider = ({ children }: PropsWithChildren) => {
-  const [toasts, setToasts] = useState<Required<ToastData>[]>([]);
+  const [toasts, setToasts] = useState<Required<ToastData>[]>([])
 
   const show = useCallback((toast: ToastData): string => {
-    const id = toast.id ?? Math.random().toString(36).slice(2);
+    const id = toast.id ?? Math.random().toString(36).slice(2)
     const t: Required<ToastData> = {
       id,
       title: toast.title ?? '',
       description: toast.description ?? '',
       duration: toast.duration ?? 4000,
-    };
-    setToasts((list) => [...list, t]);
+    }
+    setToasts(list => [...list, t])
 
     if (t.duration) {
       setTimeout(() => {
-        setToasts((list) => list.filter((x) => x.id !== id));
-      }, t.duration);
+        setToasts(list => list.filter(x => x.id !== id))
+      }, t.duration)
     }
 
-    return id;
-  }, []);
+    return id
+  }, [])
 
   const dismiss = useCallback((id: string) => {
-    setToasts((list) => list.filter((x) => x.id !== id));
-  }, []);
+    setToasts(list => list.filter(x => x.id !== id))
+  }, [])
 
-  const api = useMemo<ToastAPI>(() => ({ show, dismiss }), [show, dismiss]);
+  const api = useMemo<ToastAPI>(() => ({ show, dismiss }), [show, dismiss])
 
   return (
     <ToastCtx.Provider value={api}>
       {children}
-      <div className="toast-viewport">
-        {toasts.map((t) => (
-          <div key={t.id} className="toast">
-            <div className="toast-head">
-              {t.title && <div className="toast-title">{t.title}</div>}
+      <div className={s.viewport}>
+        {toasts.map(t => (
+          <div key={t.id} className={s.toast}>
+            <div className={s.head}>
+              {t.title && <div className={s.title}>{t.title}</div>}
               <button
-                className="toast-close"
+                className={s.close}
                 onClick={() => dismiss(t.id)}
                 aria-label="Закрыть"
               >
                 ×
               </button>
             </div>
-            {t.description && <div className="toast-desc">{t.description}</div>}
+            {t.description && <div className={s.desc}>{t.description}</div>}
           </div>
         ))}
       </div>
     </ToastCtx.Provider>
-  );
-};
+  )
+}
 
 export function useToast(): ToastAPI {
-  const ctx = useContext(ToastCtx);
-  if (!ctx) throw new Error('useToast must be used within <ToastProvider>');
-  return ctx;
+  const ctx = useContext(ToastCtx)
+  if (!ctx) throw new Error('useToast must be used within <ToastProvider>')
+  return ctx
 }
