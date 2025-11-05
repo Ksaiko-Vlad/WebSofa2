@@ -14,6 +14,8 @@ export interface Product {
   width_mm: number
   height_mm: number
   depth_mm: number
+  base_price: number         
+  image_url?: string | null
   active: boolean
   variants: ProductVariantForAdmin[]
 }

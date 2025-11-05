@@ -4,10 +4,13 @@ import { useEffect, useState } from 'react'
 import { useToast } from '@/hooks/useToast'
 import s from './AdminProductList.module.css'
 import type { Product } from '@/types/product'
+import EditProductModal from './EditProductModal'
+
 
 export default function AdminProductsList() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState<Product | null>(null)
   const { show } = useToast()
 
   useEffect(() => {
@@ -19,7 +22,11 @@ export default function AdminProductsList() {
         setProducts(data)
       } catch (err) {
         console.error(err)
-        show({ title: 'Ошибка', description: 'Не удалось загрузить товары', duration: 6000 })
+        show({
+          title: 'Ошибка',
+          description: 'Не удалось загрузить товары',
+          duration: 6000,
+        })
       } finally {
         setLoading(false)
       }
@@ -51,6 +58,7 @@ export default function AdminProductsList() {
                   <th>Цены</th>
                   <th>Активность варианта</th>
                   <th>Активность товара</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -61,46 +69,39 @@ export default function AdminProductsList() {
                     <td>{p.category}</td>
                     <td>{p.width_mm}×{p.height_mm}×{p.depth_mm}</td>
 
-                    {/* Материалы (столбец) */}
                     <td>
                       {p.variants.length === 0 ? (
                         <span className={s.muted}>Нет вариаций</span>
                       ) : (
                         <ul className={s.colList}>
                           {p.variants.map(v => (
-                            <li key={v.id} className={s.colItem}>
-                              <span className={s.materialName}>{v.material.name}</span>
-                            </li>
+                            <li key={v.id}>{v.material.name}</li>
                           ))}
                         </ul>
                       )}
                     </td>
 
-                    {/* Цены (столбец) */}
                     <td>
                       {p.variants.length === 0 ? (
                         <span className={s.muted}>—</span>
                       ) : (
                         <ul className={s.colList}>
                           {p.variants.map(v => (
-                            <li key={v.id} className={s.colItem}>
-                              <span className={s.materialPrice}>
-                                {Number(v.price).toFixed(2)} BYN
-                              </span>
+                            <li key={v.id}>
+                              {Number(v.price).toFixed(2)} BYN
                             </li>
                           ))}
                         </ul>
                       )}
                     </td>
 
-                    {/* Активность варианта (столбец) */}
                     <td>
                       {p.variants.length === 0 ? (
                         <span className={s.muted}>—</span>
                       ) : (
                         <ul className={s.colList}>
                           {p.variants.map(v => (
-                            <li key={v.id} className={s.colItem}>
+                            <li key={v.id}>
                               <span className={v.active ? s.badgeActive : s.badgeInactive}>
                                 {v.active ? 'Активен' : 'Выключен'}
                               </span>
@@ -110,11 +111,19 @@ export default function AdminProductsList() {
                       )}
                     </td>
 
-                    {/* Активность товара */}
                     <td>
                       <span className={p.active ? s.badgeActive : s.badgeInactive}>
                         {p.active ? 'Активен' : 'Выключен'}
                       </span>
+                    </td>
+
+                    <td>
+                      <button
+                        className={s.editBtn}
+                        onClick={() => setSelected(p)}
+                      >
+                      Редактировать
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -123,6 +132,20 @@ export default function AdminProductsList() {
           </div>
         )}
       </div>
+
+      {/* Модалка */}
+      {selected && (
+        <EditProductModal
+          open={!!selected}
+          product={selected}
+          onClose={() => setSelected(null)}
+          onUpdated={(updated) => {
+            setProducts(prev =>
+              prev.map(p => (p.id === updated.id ? updated : p))
+            )
+          }}
+        />
+      )}
     </div>
   )
 }
