@@ -5,6 +5,7 @@ import Image from 'next/image'
 import s from './EditProductModal.module.css'
 import { useToast } from '@/hooks/useToast'
 import type { Product } from '@/types/product'
+type Category = import('@prisma/client').ProductCategory
 
 type Props = {
   product: Product
@@ -12,23 +13,28 @@ type Props = {
   onClose: () => void
   onUpdated?: (p: Product) => void
 }
- type Category = import('@prisma/client').ProductCategory;
 
 export default function EditProductModal({ product, open, onClose, onUpdated }: Props) {
   const { show } = useToast()
   const overlayRef = useRef<HTMLDivElement>(null)
+  const [saving, setSaving] = useState(false)
 
-  // --- состояния формы ---
   const [name, setName] = useState(product.name)
   const [description, setDescription] = useState(product.description)
-  const [basePrice, setBasePrice] = useState<number>(Number((product as any).base_price ?? 0))
+  const [basePrice, setBasePrice] = useState<number>(Number(product.base_price ?? 0))
   const [active, setActive] = useState<boolean>(product.active)
   const [category, setCategory] = useState<Category>(product.category as Category)
   const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imageUrl, setImageUrl] = useState<string | null>((product as any).image_url ?? null)
+  const [imageUrl, setImageUrl] = useState<string | null>(
+    (product as any).image_path ? String((product as any).image_path) : null
+  )
   const [variants, setVariants] = useState(product.variants)
 
-  // закрытие по ESC
+  useEffect(() => {
+    if (open) console.log('🔍 product:', product)
+  }, [open, product])
+
+  // --- закрытие по ESC ---
   useEffect(() => {
     if (!open) return
     const onEsc = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -36,23 +42,24 @@ export default function EditProductModal({ product, open, onClose, onUpdated }: 
     return () => window.removeEventListener('keydown', onEsc)
   }, [open, onClose])
 
-  // сброс данных при открытии / смене product
+  // --- сброс при открытии ---
   useEffect(() => {
     if (!open) return
     setName(product.name)
     setDescription(product.description)
-    setBasePrice(Number((product as any).base_price ?? 0))
+    setBasePrice(Number(product.base_price ?? 0))
     setActive(product.active)
     setCategory(product.category as Category)
     setImageFile(null)
-    setImageUrl((product as any).image_url ?? null)
+    setImageUrl((product as any).image_path ? String((product as any).image_path) : null)
     setVariants(product.variants)
   }, [open, product])
 
-  // превью
+  // --- превью изображения ---
   const preview = useMemo(() => {
     if (imageFile) return URL.createObjectURL(imageFile)
-    return imageUrl ?? null
+    if (imageUrl) return imageUrl
+    return null
   }, [imageFile, imageUrl])
 
   useEffect(() => {
@@ -65,21 +72,20 @@ export default function EditProductModal({ product, open, onClose, onUpdated }: 
 
   async function save() {
     try {
+      setSaving(true)
       const fd = new FormData()
       fd.append('name', name)
       fd.append('description', description)
       fd.append('base_price', String(basePrice))
       fd.append('active', String(active))
-      fd.append('category', category) // <— вот здесь добавляем категорию
-      fd.append(
-        'variants',
-        JSON.stringify(variants.map(v => ({ id: v.id, active: v.active })))
-      )
+      fd.append('category', category)
+      fd.append('variants', JSON.stringify(variants.map(v => ({ id: v.id, active: v.active }))))
       if (imageFile) fd.append('image', imageFile)
 
       const r = await fetch(`/api/v1/admin/products/${product.id}`, {
         method: 'PATCH',
         body: fd,
+        cache: 'no-store',
       })
 
       const data = await r.json()
@@ -94,6 +100,8 @@ export default function EditProductModal({ product, open, onClose, onUpdated }: 
         description: e instanceof Error ? e.message : 'Неизвестная ошибка',
         duration: 6000,
       })
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -110,7 +118,7 @@ export default function EditProductModal({ product, open, onClose, onUpdated }: 
         </div>
 
         <div className={s.grid}>
-          {/* левая колонка */}
+          {/* Левая колонка */}
           <div className={s.section}>
             <div className={s.field}>
               <span className={s.label}>Название</span>
@@ -128,6 +136,7 @@ export default function EditProductModal({ product, open, onClose, onUpdated }: 
                 className={s.input}
                 type="number"
                 min={0}
+                step="0.01"
                 value={basePrice}
                 onChange={(e) => setBasePrice(Number(e.target.value))}
               />
@@ -135,16 +144,12 @@ export default function EditProductModal({ product, open, onClose, onUpdated }: 
 
             <label className={s.field}>
               <span className={s.label}>Категория</span>
-              <select
-                className={s.input}
-                value={category}
-                onChange={(e) => setCategory(e.target.value as Category)}
-              >
+              <select className={s.input} value={category} onChange={(e) => setCategory(e.target.value as Category)}>
                 <option value="CHAIR">Стул</option>
                 <option value="TABLE">Стол</option>
                 <option value="BED">Кровать</option>
                 <option value="SOFA">Диван</option>
-                <option value="PUFF">Пуф</option>
+                <option value="PUFF">Пуффик</option>
                 <option value="ARMCHAIR">Кресло</option>
                 <option value="OTHER">Другое</option>
               </select>
@@ -155,39 +160,20 @@ export default function EditProductModal({ product, open, onClose, onUpdated }: 
                 <div className={s.label}>Статус товара</div>
                 <div style={{ fontWeight: 700 }}>{active ? 'Активен' : 'Выключен'}</div>
               </div>
-              <input
-                type="checkbox"
-                className={s.switch}
-                checked={active}
-                onChange={(e) => setActive(e.target.checked)}
-              />
+              <input type="checkbox" className={s.switch} checked={active} onChange={(e) => setActive(e.target.checked)} />
             </div>
           </div>
 
-          {/* правая колонка */}
+          {/* Правая колонка */}
           <div className={s.section}>
             <div className={s.fileRow}>
               <span className={s.label}>Изображение</span>
-
               {preview ? (
-                <Image
-                  className={s.preview}
-                  src={preview}
-                  alt={name || 'Изображение товара'}
-                  width={800}
-                  height={600}
-                  unoptimized
-                />
+                <Image className={s.preview} src={preview} alt={name || 'Изображение товара'} width={800} height={600} unoptimized />
               ) : (
                 <div className={s.previewPlaceholder}>Нет изображения</div>
               )}
-
-              <input
-                className={s.input}
-                type="file"
-                accept="image/*"
-                onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
-              />
+              <input className={s.input} type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] ?? null)} />
             </div>
 
             <div className={s.field} style={{ marginTop: 10 }}>
@@ -199,9 +185,7 @@ export default function EditProductModal({ product, open, onClose, onUpdated }: 
                       type="checkbox"
                       checked={v.active}
                       onChange={(e) =>
-                        setVariants(prev =>
-                          prev.map(x => x.id === v.id ? { ...x, active: e.target.checked } : x)
-                        )
+                        setVariants(prev => prev.map(x => x.id === v.id ? { ...x, active: e.target.checked } : x))
                       }
                     />
                     <span style={{ fontWeight: 700, minWidth: 120 }}>{v.material.name}</span>
@@ -214,8 +198,10 @@ export default function EditProductModal({ product, open, onClose, onUpdated }: 
         </div>
 
         <div className={s.actions}>
-          <button className={s.btn} onClick={onClose}>Отмена</button>
-          <button className={`${s.btn} ${s.btnPrimary}`} onClick={save}>Сохранить</button>
+          <button className={s.btn} onClick={onClose} disabled={saving}>Отмена</button>
+          <button className={`${s.btn} ${s.btnPrimary}`} onClick={save} disabled={saving}>
+            {saving ? 'Сохраняем…' : 'Сохранить'}
+          </button>
         </div>
       </div>
     </div>

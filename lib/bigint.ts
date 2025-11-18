@@ -1,22 +1,27 @@
-
+import { Prisma } from '@prisma/client'
 import type { Role } from '@prisma/client';
 
 
 export function jsonSafe(input: any): any {
   return JSON.parse(
     JSON.stringify(input, (_, v) => {
+      if (typeof v === 'bigint') return v.toString()
 
-      if (typeof v === 'bigint') return v.toString();
-
-  
-      if (v && typeof v === 'object') {
-        if (typeof (v as any).toNumber === 'function') return (v as any).toNumber();
-        if (typeof (v as any).toFixed === 'function') return Number((v as any).toFixed(10));
-        if (v instanceof Date) return v.toISOString();
+      // Prisma.Decimal
+      if (v instanceof Prisma.Decimal) {
+        return v.toNumber()
       }
-      return v;
+
+      // Старый Decimal / Decimal.js
+      if (v && typeof v === 'object') {
+        if (typeof (v as any).toNumber === 'function') return (v as any).toNumber()
+        if (typeof (v as any).toFixed === 'function') return Number((v as any).toFixed(10))
+        if (v instanceof Date) return v.toISOString()
+      }
+
+      return v
     })
-  );
+  )
 }
 
 export type PlainUser = {

@@ -1,11 +1,16 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import type { ProductDto } from '@/types/product'
+import Image from 'next/image'
+import type { ProductForUserDto } from '@/types/product'
 import ProductModal from './ProductModal'
 import s from './CatalogPage.module.css'
 
-export default function ProductCard({ product }: { product: ProductDto }) {
+type ProductCardProps = {
+  product: ProductForUserDto
+}
+
+export default function ProductCard({ product }: ProductCardProps) {
   const variants = product.variants ?? []
   const [selectedSku, setSelectedSku] = useState<string>(variants[0]?.sku ?? '')
   const [isOpen, setIsOpen] = useState(false)
@@ -25,21 +30,46 @@ export default function ProductCard({ product }: { product: ProductDto }) {
     })
   }
 
+  const imageSrc =
+    product.image_path && product.image_path.length > 0
+      ? product.image_path.startsWith('/')
+        ? product.image_path
+        : `/uploads/products/${product.image_path}`
+      : null
+
   return (
     <>
-      <div className={s.card} onClick={() => setIsOpen(true)}>
+      <article className={s.card} onClick={() => setIsOpen(true)}>
+        <div className={s.cardImageWrapper}>
+          {imageSrc ? (
+            <Image
+              src={imageSrc}
+              alt={product.name}
+              fill
+              className={s.cardImage}
+              sizes="(min-width: 1200px) 260px, 50vw"
+            />
+          ) : (
+            <div className={s.cardImagePlaceholder}>Нет фото</div>
+          )}
+        </div>
+
+        <div className={s.cardMain}>
         <h3 className={s.productTitle}>{product.name}</h3>
-        <p className={s.muted}>{product.category}</p>
-        <p className={s.desc}>{product.description}</p>
-
-        <div className={s.dimensions}>
-          {product.width_mm}×{product.height_mm}×{product.depth_mm} мм
+          <span className={s.cardMeta}>{product.category}</span>
+          <div className={s.dimensions}>
+            {product.width_mm}×{product.height_mm}×{product.depth_mm} мм
+          </div>
         </div>
 
-        <div className={s.price}>
-          {selectedVariant?.price.toLocaleString('ru-RU')} BYN
+        <div className={s.cardFooter}>
+          {selectedVariant && (
+            <div className={s.price}>
+              {selectedVariant.price.toLocaleString('ru-RU')} BYN
+            </div>
+          )}
         </div>
-      </div>
+      </article>
 
       {isOpen && (
         <ProductModal

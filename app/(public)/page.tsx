@@ -11,13 +11,13 @@ const HomePage: FC = () => {
         <div className={s.heroText}>
           <h1>Мебель под ваш интерьер</h1>
           <p>
-            Выбирайте ткань и цвет — мы изготовим и доставим. Можно забрать в удобном магазине.
+            Выбирайте ткань и цвет - мы изготовим и доставим. Можно забрать в удобном магазине.
           </p>
           <div className={s.heroActions}>
             <Link className="btn btn-primary" href="/products">
               Перейти в каталог
             </Link>
-            <Link className="btn btn-ghost" href="/contacts">
+            <Link className="btn btn-ghost" href="/about">
               Контакты
             </Link>
           </div>

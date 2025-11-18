@@ -12,6 +12,8 @@ export async function GET() {
         width_mm: true,
         height_mm: true,
         depth_mm: true,
+        base_price: true,     
+        image_path: true,      
         active: true,
         variants: {
           select: {
@@ -34,6 +36,8 @@ export async function GET() {
       width_mm: Number(p.width_mm),
       height_mm: Number(p.height_mm),
       depth_mm: Number(p.depth_mm),
+      base_price: Number(p.base_price ?? 0),   
+      image_path: p.image_path ?? null,        
       active: Boolean(p.active),
       variants: p.variants.map(v => ({
         id: Number(v.id),
@@ -50,6 +54,9 @@ export async function GET() {
     return NextResponse.json(normalized)
   } catch (err) {
     console.error('products fetch error', err)
-    return NextResponse.json({ message: 'Ошибка при загрузке товаров' }, { status: 500 })
+    return NextResponse.json(
+      { message: 'Ошибка при загрузке товаров' },
+      { status: 500 },
+    )
   }
 }

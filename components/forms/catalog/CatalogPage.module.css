@@ -12,50 +12,113 @@
 .grid {
   display: grid;
   gap: 24px;
-  grid-template-columns: repeat(4, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, minmax(260px, 1fr));
 }
 
 .muted {
   color: #6b7280;
 }
 
+
 .card {
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  padding: 20px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  padding: 14px 14px 16px;
   cursor: pointer;
-  transition: transform 0.2s ease;
-  color:#000000 !important;
-  --fg: #000000;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  display: flex;
+  flex-direction: column;
+  color: #000000;
 }
 
 .card:hover {
   transform: translateY(-4px);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+}
+
+/* зона под картинку — всегда одинаковая высота */
+.cardImageWrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 70%; /* соотношение сторон ~4:3 */
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f3f4f6;
+  margin-bottom: 12px;
+}
+
+.cardImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cardImagePlaceholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* контент карточки */
+
+.cardMain {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.cardMeta {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+  margin-bottom: 2px;
 }
 
 .productTitle {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   margin-bottom: 4px;
 }
 
 .desc {
   font-size: 14px;
-  color: #374151;
+  color: #4b5563;
+  margin-top: 2px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .dimensions {
   font-size: 12px;
-  color: #6b7280;
+  color: #9ca3af;
   margin-top: 6px;
 }
 
-.price {
-  margin-top: 8px;
-  font-weight: 500;
-  font-size: 16px;
+.cardFooter {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
 }
+
+.price {
+  font-weight: 600;
+  font-size: 17px;
+}
+
+/* ===== МОДАЛКА ===== */
 
 .modalOverlay {
   position: fixed;
@@ -69,26 +132,48 @@
 }
 
 .modalCard {
-  background: #fff;
+  background: #ffffff;
   border-radius: 20px;
   padding: 32px;
-  width: min(90%, 480px);
+  width: min(90%, 520px);
+  max-height: 90vh;          /* модалка не выше экрана */
+  overflow-y: auto;          /* остальное прокручивается */
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  color:#000000 !important;
-  --fg: #000000;
+  color: #000000;
 }
 
 .modalClose {
-  position: absolute;
-  top: 12px;
-  right: 12px;
+  position: sticky;          /* кнопку не уезжает вверх */
+  top: 8px;
+  align-self: flex-end;
   background: none;
   border: none;
   font-size: 20px;
   cursor: pointer;
+  z-index: 1;
+}
+
+.modalImageWrapper {
+  width: 100%;
+  max-height: 320px;         /* общая высота под любую картинку */
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* картинка вписывается внутрь без обрезания */
+.modalImage {
+  max-height: 100%;
+  width: auto;
+  display: block;
+  object-fit: contain;
 }
 
 .modalTitle {
@@ -123,6 +208,7 @@
   padding: 6px 10px;
 }
 
+
 /* До 1200px — 3 карточки */
 @media (max-width: 1200px) {
   .grid {
@@ -144,7 +230,7 @@
   }
 }
 
-/* Телефоны — 1 карточка на строку */
+/* Телефоны — 1 карточка */
 @media (max-width: 600px) {
   .wrapper {
     padding: 24px 16px;
@@ -154,20 +240,24 @@
     gap: 16px;
   }
   .card {
-    padding: 16px;
+    padding: 14px;
   }
   .productTitle {
-    font-size: 18px;
+    font-size: 17px;
   }
   .desc {
     font-size: 13px;
   }
   .price {
-    font-size: 15px;
+    font-size: 16px;
   }
   .modalCard {
     width: 92%;
     padding: 24px;
+    max-height: 90vh;
+  }
+  .modalImageWrapper {
+    max-height: 240px;
   }
   .modalTitle {
     font-size: 20px;

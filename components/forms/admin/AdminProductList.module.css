@@ -97,4 +97,27 @@
   background: color-mix(in oklab, var(--fg) 6%, var(--bg));
 }
 
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.refreshBadge {
+  font-size: 13px;
+  color: var(--muted);
+  animation: fadePulse 1s infinite ease-in-out;
+}
+
+.tableFading {
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+@keyframes fadePulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+
 

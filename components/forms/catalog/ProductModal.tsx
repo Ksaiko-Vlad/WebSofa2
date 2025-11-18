@@ -1,6 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
+import Image from 'next/image'
 import s from './CatalogPage.module.css'
 import type { ProductModalProps } from '@/types/product'
 
@@ -13,6 +14,13 @@ export default function ProductModal({
   onClose,
 }: ProductModalProps) {
   const variants = product.variants ?? []
+
+  const imageSrc =
+    product.image_path && product.image_path.length > 0
+      ? product.image_path.startsWith('/')
+        ? product.image_path
+        : `/uploads/products/${product.image_path}`
+      : null
 
   return (
     <AnimatePresence>
@@ -28,6 +36,19 @@ export default function ProductModal({
           <button className={s.modalClose} onClick={onClose}>
             ✕
           </button>
+
+          {imageSrc && (
+            <div className={s.modalImageWrapper}>
+              <Image
+                src={imageSrc}
+                alt={product.name}
+                width={800}
+                height={600}
+                className={s.modalImage}
+                priority
+              />
+            </div>
+          )}
 
           <h3 className={s.modalTitle}>{product.name}</h3>
           <p className={s.muted}>{product.category}</p>
@@ -50,9 +71,11 @@ export default function ProductModal({
             ))}
           </select>
 
-          <div className={s.priceLarge}>
-            {selectedVariant?.price.toLocaleString('ru-RU')} BYN
-          </div>
+          {selectedVariant && (
+            <div className={s.priceLarge}>
+              {selectedVariant.price.toLocaleString('ru-RU')} BYN
+            </div>
+          )}
 
           <button className={s.btnLarge} onClick={onAddToCart}>
             Добавить в корзину

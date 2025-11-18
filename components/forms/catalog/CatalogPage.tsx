@@ -22,7 +22,10 @@ export default function CatalogPage() {
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = (await res.json()) as ProductForUserDto[];
-        setProducts(Array.isArray(data) ? data : []);
+        setProducts(
+          (Array.isArray(data) ? data : []).filter(
+          (p) => Array.isArray(p.variants) && p.variants.length > 0)
+          );
       } catch (e: any) {
         if (e.name !== 'AbortError') setErr(e?.message ?? 'Ошибка загрузки');
       } finally {
