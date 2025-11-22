@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import Image from 'next/image'
 import type { ProductForUserDto } from '@/types/product'
 import ProductModal from './ProductModal'
+import { useCart } from '@/components/cart/CartProvider'
 import s from './CatalogPage.module.css'
 
 type ProductCardProps = {
@@ -14,6 +15,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const variants = product.variants ?? []
   const [selectedSku, setSelectedSku] = useState<string>(variants[0]?.sku ?? '')
   const [isOpen, setIsOpen] = useState(false)
+  const { addItem } = useCart()
 
   const selectedVariant = useMemo(
     () => variants.find((v) => v.sku === selectedSku),
@@ -22,12 +24,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const handleAddToCart = () => {
     if (!selectedVariant) return
-    console.log('🛒 Добавлено в корзину:', {
-      id: product.id,
-      name: product.name,
-      material: selectedVariant.material.name,
-      price: selectedVariant.price,
-    })
+    addItem({ product, variant: selectedVariant, quantity: 1 })
   }
 
   const imageSrc =
@@ -58,7 +55,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <h3 className={s.productTitle}>{product.name}</h3>
           <span className={s.cardMeta}>{product.category}</span>
           <div className={s.dimensions}>
-            {product.width_mm}×{product.height_mm}×{product.depth_mm} мм
+            {product.width_mm}×{product.height_mm}×{product.depth_mm} cм
           </div>
         </div>
 

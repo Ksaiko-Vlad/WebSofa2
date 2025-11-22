@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { PropsWithChildren } from 'react';
+import { CartProvider } from '@/components/cart/CartProvider'
 
 export const metadata: Metadata = {
   title: 'WebSofa',
@@ -27,7 +28,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
       </head>
-      <body>{children}</body>
+      <CartProvider>{children}</CartProvider>
     </html>
   );
 }

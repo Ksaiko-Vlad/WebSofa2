@@ -55,7 +55,7 @@ export default function ProductModal({
           <p className={s.desc}>{product.description}</p>
 
           <div className={s.dimensions}>
-            Размеры: {product.width_mm}×{product.height_mm}×{product.depth_mm} мм
+            Размеры: {product.width_mm}×{product.height_mm}×{product.depth_mm} cм
           </div>
 
           <label className={s.label}>Материал:</label>
