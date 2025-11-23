@@ -1,11 +1,15 @@
-// app/(public)/cart/page.tsx
+
 'use client'
 
+import { useState } from 'react'
 import { useCart } from '@/components/cart/CartProvider'
 import s from './CartPage.module.css'
 
 export default function CartPage() {
   const { items, totalPrice, setQuantity, removeItem, clear } = useCart()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
 
   if (items.length === 0) {
     return (
@@ -14,6 +18,33 @@ export default function CartPage() {
         <p className={s.muted}>Корзина пуста</p>
       </section>
     )
+  }
+
+  async function handleCheckout() {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const res = await fetch('/api/v1/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok || !data.url) {
+        throw new Error(data?.message || 'Не удалось создать платеж')
+      }
+
+      // редиректим на Stripe Checkout
+      window.location.href = data.url
+    } catch (e: any) {
+      console.error(e)
+      setError(e?.message ?? 'Ошибка оплаты')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -72,7 +103,9 @@ export default function CartPage() {
         <button className={s.secondary} onClick={clear}>
           Очистить корзину
         </button>
-        <button className={s.primary}>Оформить заказ</button>
+        <button className={s.primary} onClick={handleCheckout} disabled={loading}>
+        {loading ? 'Переходим к оплате…' : 'Оформить заказ'}
+        </button>
       </div>
     </section>
   )
