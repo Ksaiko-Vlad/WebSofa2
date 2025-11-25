@@ -24,7 +24,7 @@ const themeInit = `
 
 export default function RootLayout({ children }: PropsWithChildren) {
   return (
-    <html lang="ru">
+    <html lang="ru" data-theme="light">
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
       </head>

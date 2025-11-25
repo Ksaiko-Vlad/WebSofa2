@@ -5,12 +5,12 @@ import type { PropsWithChildren } from 'react';
 
 export default function PublicLayout({ children }: PropsWithChildren) {
   return (
-    <ToastProvider>
-    <div className="site">
+    <body className="site">
+      <ToastProvider>
       <Header />
       <main className="container">{children}</main>
       <Footer />
-    </div>
-    </ToastProvider>
+      </ToastProvider>
+    </body>
   );
 }

@@ -25,6 +25,7 @@ export async function GET() {
             active: true,              
           },
           select: {
+            id: true,
             sku: true,
             price: true,
             material: {

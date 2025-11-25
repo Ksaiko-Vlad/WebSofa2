@@ -116,7 +116,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     addItem: ({ product, variant, quantity = 1 }) => {
       const item: CartItem = {
-        productId: product.id,
+        productId: variant.id,
         sku: variant.sku,
         name: product.name,
         materialName: variant.material.name,

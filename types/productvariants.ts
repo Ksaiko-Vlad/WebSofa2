@@ -10,6 +10,7 @@ export interface ProductVariantForAdmin {
   }
 
   export interface ProductVariantForUserDto {
+    id: number
     sku: string
     price: number
     material: {
