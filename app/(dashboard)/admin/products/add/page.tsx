@@ -8,8 +8,8 @@ export const metadata = {
 
 export default function AdminAddProductsPage() {
   return (
-    <section>
+    
       <ProductForm />
-    </section>
+  
   )
 }

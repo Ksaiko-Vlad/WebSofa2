@@ -1,6 +1,5 @@
 import Header from '@/components/HeaderServer'
 import Footer from '@/components/ui/Footer'
-import { ToastProvider } from '@/hooks/useToast'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { verifyJwt } from '@/lib/jwt'
@@ -26,12 +25,10 @@ export default async function DashboardLayout({ children }: PropsWithChildren) {
   if (!user) redirect('/login')
 
   return (
-    <ToastProvider>
       <div className="site">
         <Header />
         <main className="container">{children}</main>
         <Footer />
       </div>
-    </ToastProvider>
   )
 }

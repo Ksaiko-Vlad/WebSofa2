@@ -1,13 +1,27 @@
 .wrapper {
   padding: 20px;
+  background: var(--background);
+  color: var(--fg);
+
+  /* локальные “поверхности” */
+  --surface: #ffffff;
+  --surface-2: color-mix(in srgb, #ffffff 92%, var(--background));
+  --shadow: 0 4px 20px rgba(0,0,0,0.10);
+}
+
+/* surface для тёмной темы */
+:global(html[data-theme='dark']) .wrapper {
+  --surface: #0f172a;
+  --surface-2: color-mix(in srgb, #0f172a 92%, var(--background));
+  --shadow: 0 4px 20px rgba(0,0,0,0.35);
 }
 
 .card {
-  background: var(--bg);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  box-shadow: var(--shadow);
 }
 
 .title {
@@ -24,7 +38,7 @@
   width: 100%;
   border-collapse: collapse;
   min-width: 950px;
-  background: var(--bg);
+  background: var(--surface);
   color: var(--fg);
 }
 
@@ -40,11 +54,11 @@
   font-weight: 700;
   font-size: 14px;
   color: var(--muted);
-  background: color-mix(in oklab, var(--fg) 3%, var(--bg));
+  background: var(--surface-2);
 }
 
 .table tr:hover {
-  background: color-mix(in oklab, var(--fg) 6%, var(--bg));
+  background: color-mix(in srgb, var(--fg) 6%, var(--surface));
   transition: 0.15s;
 }
 
@@ -94,7 +108,7 @@
 }
 
 .editBtn:hover {
-  background: color-mix(in oklab, var(--fg) 6%, var(--bg));
+  background: color-mix(in srgb, var(--fg) 6%, var(--surface));
 }
 
 .headerRow {
@@ -118,6 +132,3 @@
   0%, 100% { opacity: 0.4; }
   50% { opacity: 1; }
 }
-
-
-

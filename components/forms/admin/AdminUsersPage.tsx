@@ -1,42 +1,262 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
+import Link from 'next/link'
 import { useToast } from '@/hooks/useToast'
 import s from './AdminUsersPage.module.css'
 import type { UserInfoForAdmin } from '@/types/user'
 
+type EditDraft = {
+  first_name: string
+  second_name: string
+  last_name: string
+  phone: string
+  email: string
+  role: UserInfoForAdmin['role']
+  active: boolean
+  password: string // если заполнено — reset
+}
+
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserInfoForAdmin[]>([])
   const [loading, setLoading] = useState(true)
+
+  const [editing, setEditing] = useState<UserInfoForAdmin | null>(null)
+  const [draft, setDraft] = useState<EditDraft | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
   const { show } = useToast()
 
-  useEffect(() => {
-    async function loadUsers() {
-      try {
-        const res = await fetch('/api/v1/admin/users')
-        if (!res.ok) throw new Error('Ошибка при загрузке пользователей')
-        const data = await res.json()
-        setUsers(data)
-      } catch (err) {
-        console.error(err)
-        show({
-          title: 'Ошибка',
-          description: 'Не удалось загрузить список пользователей',
-          duration: 6000,
-        })
-      } finally {
-        setLoading(false)
-      }
+  const roleOptions = useMemo(
+    () => ['customer', 'manager', 'driver', 'factory_worker', 'admin'] as const,
+    []
+  )
+
+  async function loadUsers(signal?: AbortSignal) {
+    try {
+      const res = await fetch('/api/v1/admin/users', { signal })
+      if (!res.ok) throw new Error('Ошибка при загрузке пользователей')
+      const data = (await res.json()) as UserInfoForAdmin[]
+      setUsers(Array.isArray(data) ? data : [])
+    } catch (err: any) {
+      if (err?.name === 'AbortError') return
+      console.error(err)
+      show({
+        title: 'Ошибка',
+        description: 'Не удалось загрузить список пользователей',
+        duration: 6000,
+      })
+    } finally {
+      setLoading(false)
     }
-    loadUsers()
-  }, [show])
+  }
+
+  useEffect(() => {
+    setMounted(true)
+    const ac = new AbortController()
+    loadUsers(ac.signal)
+    return () => ac.abort()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  function openEdit(u: UserInfoForAdmin) {
+    setEditing(u)
+    setDraft({
+      first_name: u.first_name ?? '',
+      second_name: u.second_name ?? '',
+      last_name: u.last_name ?? '',
+      phone: u.phone ?? '',
+      email: u.email ?? '',
+      role: u.role,
+      active: !!u.active,
+      password: '',
+    })
+  }
+
+  function closeEdit() {
+    if (saving) return
+    setEditing(null)
+    setDraft(null)
+  }
+
+  // Esc закрывает модалку
+  useEffect(() => {
+    if (!editing) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeEdit()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing, saving])
+
+  async function saveEdit() {
+    if (!editing || !draft) return
+
+    try {
+      setSaving(true)
+
+      const payload = {
+        first_name: draft.first_name.trim() ? draft.first_name.trim() : null,
+        second_name: draft.second_name.trim() ? draft.second_name.trim() : null,
+        last_name: draft.last_name.trim() ? draft.last_name.trim() : null,
+        phone: draft.phone.trim() ? draft.phone.trim() : null,
+        email: draft.email.trim(),
+        role: draft.role,
+        active: draft.active,
+        ...(draft.password.trim() ? { password: draft.password.trim() } : {}),
+      }
+
+      const res = await fetch(`/api/v1/admin/users/${editing.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.message || 'Не удалось обновить пользователя')
+
+      // ожидаем, что backend вернёт { user }
+      const updated: UserInfoForAdmin = data.user ?? data
+      setUsers((prev) => prev.map((x) => (x.id === updated.id ? updated : x)))
+
+      show({ title: 'Готово', description: 'Пользователь обновлён', duration: 3000 })
+      closeEdit()
+    } catch (e: any) {
+      console.error(e)
+      show({
+        title: 'Ошибка',
+        description: e?.message ?? 'Ошибка обновления пользователя',
+        duration: 6000,
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
 
   if (loading) return <p className={s.muted}>Загрузка...</p>
+
+  const modal =
+    editing && draft ? (
+      <div className={s.modalOverlay} onMouseDown={closeEdit}>
+        <div className={s.modalCard} onMouseDown={(e) => e.stopPropagation()}>
+          <div className={s.modalHeader}>
+            <div>
+              <div className={s.modalTitle}>Редактирование пользователя</div>
+              <div className={s.modalSubtitle}>ID: {editing.id}</div>
+            </div>
+            <button className={s.iconBtn} onClick={closeEdit} aria-label="Close">
+              ✕
+            </button>
+          </div>
+
+          <div className={s.formGrid}>
+            <div className={s.field}>
+              <label>Имя</label>
+              <input
+                value={draft.first_name}
+                onChange={(e) => setDraft({ ...draft, first_name: e.target.value })}
+                placeholder="Имя"
+              />
+            </div>
+
+            <div className={s.field}>
+              <label>Отчество</label>
+              <input
+                value={draft.second_name}
+                onChange={(e) => setDraft({ ...draft, second_name: e.target.value })}
+                placeholder="Отчество"
+              />
+            </div>
+
+            <div className={s.field}>
+              <label>Фамилия</label>
+              <input
+                value={draft.last_name}
+                onChange={(e) => setDraft({ ...draft, last_name: e.target.value })}
+                placeholder="Фамилия"
+              />
+            </div>
+
+            <div className={s.field}>
+              <label>Email</label>
+              <input
+                value={draft.email}
+                onChange={(e) => setDraft({ ...draft, email: e.target.value })}
+                placeholder="Email"
+              />
+            </div>
+
+            <div className={s.field}>
+              <label>Телефон</label>
+              <input
+                value={draft.phone}
+                onChange={(e) => setDraft({ ...draft, phone: e.target.value })}
+                placeholder="Телефон"
+              />
+            </div>
+
+            <div className={s.field}>
+              <label>Роль</label>
+              <select
+                value={draft.role}
+                onChange={(e) =>
+                  setDraft({ ...draft, role: e.target.value as EditDraft['role'] })
+                }
+              >
+                {roleOptions.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className={s.fieldInline}>
+              <input
+                type="checkbox"
+                checked={draft.active}
+                onChange={(e) => setDraft({ ...draft, active: e.target.checked })}
+                id="u_active"
+              />
+              <label htmlFor="u_active">Активен</label>
+            </div>
+
+            <div className={s.field} style={{ gridColumn: '1 / -1' }}>
+              <label>Сброс пароля (опционально)</label>
+              <input
+                type="password"
+                value={draft.password}
+                onChange={(e) => setDraft({ ...draft, password: e.target.value })}
+                placeholder="Новый пароль (если нужно)"
+              />
+              <div className={s.hint}>Если поле пустое — пароль не меняем.</div>
+            </div>
+          </div>
+
+          <div className={s.modalActions}>
+            <button className={s.secondaryBtn} disabled={saving} onClick={closeEdit}>
+              Отмена
+            </button>
+            <button className={s.primaryBtn} disabled={saving} onClick={saveEdit}>
+              {saving ? 'Сохраняю…' : 'Сохранить'}
+            </button>
+          </div>
+        </div>
+      </div>
+    ) : null
 
   return (
     <div className={s.wrapper}>
       <div className={s.card}>
-        <h2 className={s.title}>Все пользователи</h2>
+        <div className={s.headerRow}>
+          <h2 className={s.title}>Все пользователи</h2>
+          <Link className={s.secondaryBtn} href="/admin">
+            ← Назад
+          </Link>
+        </div>
 
         {users.length === 0 ? (
           <div className={s.placeholder}>
@@ -52,12 +272,14 @@ export default function AdminUsersPage() {
                   <th>Email</th>
                   <th>Телефон</th>
                   <th>Роль</th>
-                  <th>Активен</th>
-                  <th>Дата регистрации</th>
+                  <th>Статус</th>
+                  <th>Создан</th>
+                  <th />
                 </tr>
               </thead>
+
               <tbody>
-                {users.map(u => (
+                {users.map((u) => (
                   <tr key={u.id}>
                     <td>{u.id}</td>
                     <td>
@@ -71,9 +293,7 @@ export default function AdminUsersPage() {
                       <span className={s.roleBadge}>{u.role}</span>
                     </td>
                     <td>
-                      <span
-                        className={u.active ? s.badgeActive : s.badgeInactive}
-                      >
+                      <span className={u.active ? s.badgeActive : s.badgeInactive}>
                         {u.active ? 'Активен' : 'Выключен'}
                       </span>
                     </td>
@@ -84,6 +304,11 @@ export default function AdminUsersPage() {
                         year: 'numeric',
                       })}
                     </td>
+                    <td className={s.actionsCell}>
+                      <button className={s.editBtn} onClick={() => openEdit(u)}>
+                        Редактировать
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -91,6 +316,8 @@ export default function AdminUsersPage() {
           </div>
         )}
       </div>
+
+      {mounted && modal ? createPortal(modal, document.body) : null}
     </div>
   )
 }

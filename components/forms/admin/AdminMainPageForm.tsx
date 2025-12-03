@@ -19,17 +19,21 @@ export default async function AdminMainPage() {
           <h3>👥 Пользователи</h3>
           <p>Список и роли пользователей</p>
         </a>
-        <a href="/admin/users/add" className={s.card}>
+        <a href="/admin/users/new" className={s.card}>
         <h3>➕ Добавить пользователя</h3>
         <p>Создание нового пользователя</p>
         </a>
-        <a href="/admin/materials/add" className={s.card}>
+        <a href="/admin/materials" className={s.card}>
         <h3>➕ Добавить материал</h3>
         <p>Добавление нового материала</p>
         </a>
         <a href="/admin/orders" className={s.card}>
           <h3>🚚 Заказы</h3>
           <p>Контроль заказов и статусов</p>
+        </a>
+        <a href="/admin/shops" className={s.card}>
+          <h3> Магазины</h3>
+          <p>Просмотр и редактирование магазинов</p>
         </a>
       </div>
     </section>

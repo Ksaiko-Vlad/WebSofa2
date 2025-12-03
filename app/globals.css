@@ -1,6 +1,7 @@
 :root {
   --bg: #ffffff;
   --fg: #111111;
+  
   --muted: #6b7280;
   --border: #e5e7eb;
   --primary: #111111;
@@ -8,28 +9,25 @@
   --container: 1100px;
   --radius: 12px;
   --footer-h: 140px;
-
   --background: var(--bg);
   --foreground: var(--fg);
+
 }
 
-/* Системная тёмная тема */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     --bg: #0a0a0a;
     --fg: #ededed;
-
     --border: #1f2937;
     --muted: #9ca3af;
-
     --primary: #ededed;
     --primary-contrast: #0a0a0a;
 
     --background: var(--bg);
     --foreground: var(--fg);
   }
-
-  html {
+  
+  html:not([data-theme]) {
     color-scheme: dark;
   }
 }

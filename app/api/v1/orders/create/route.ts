@@ -4,7 +4,7 @@ import { stripe } from '@/lib/stripe'
 import { z } from 'zod'
 
 const cartItemSchema = z.object({
-  productId: z.coerce.number().int().positive(), // тут лежит id варианта
+  productId: z.coerce.number().int().positive(), 
   sku: z.string(),
   name: z.string(),
   materialName: z.string(),
@@ -16,7 +16,6 @@ const cartItemSchema = z.object({
 const checkoutSchema = z.object({
   customer: z.object({
     name: z.string().trim().min(1),
-    // пока опционально — можешь позже добавить поля в форму
     second_name: z.string().trim().optional(),
     last_name: z.string().trim().optional(),
     phone: z.string().trim().min(5),
@@ -79,7 +78,7 @@ export async function POST(req: Request) {
       success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/cart`,
 
-      // ВАЖНО: всё, что нужно для создания заказа, кладём в metadata
+      // всё кладём в metadata
       metadata: {
         name: customer.name,
         second_name: customer.second_name ?? '',

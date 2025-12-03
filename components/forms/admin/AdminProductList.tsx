@@ -38,7 +38,15 @@ export default function AdminProductsList() {
     loadProducts()
   }, [loadProducts])
 
-  if (loading) return <p className={s.muted}>Загрузка товаров...</p>
+  if (loading) {
+    return (
+      <div className={s.wrapper}>
+        <div className={s.card}>
+          <p className={s.muted}>Загрузка товаров...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className={s.wrapper}>

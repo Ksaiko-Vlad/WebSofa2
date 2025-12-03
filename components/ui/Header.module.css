@@ -6,6 +6,12 @@
     border-bottom: 1px solid var(--border);
   }
   
+  .iconSun, .iconMoon { display: none; line-height: 0; }
+
+:global(html[data-theme='dark']) .iconSun { display: inline-flex; }
+:global(html[data-theme='light']) .iconMoon { display: inline-flex; }
+:global(html:not([data-theme])) .iconMoon { display: inline-flex; }
+
   .inner {
     display: flex;
     align-items: center;

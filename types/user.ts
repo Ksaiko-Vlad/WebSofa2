@@ -13,6 +13,7 @@ export interface UserInfo {
     id: number | string
     email: string
     first_name: string | null
+    second_name: string | null
     last_name: string | null
     phone: string | null
     role: string

@@ -1,0 +1,225 @@
+.wrapper {
+    --card: #ffffff;
+    --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+    --shadow-strong: 0 30px 90px rgba(15, 23, 42, 0.22);
+   
+    min-height: 100%;
+    padding: 28px;
+    background: var(--background);
+    color: var(--fg);
+  }
+  
+  :global(html[data-theme='dark']) .wrapper {
+    --card: #0f172a;
+    --shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+    --shadow-strong: 0 40px 120px rgba(0, 0, 0, 0.55);
+  }
+  
+  .muted { color: var(--muted); }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+  
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    padding: 18px;
+  }
+  
+  .headerRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  
+  .title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+  
+  /* buttons */
+  .primaryBtn, .secondaryBtn, .editBtn, .iconBtn {
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    font-weight: 900;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform .12s ease, background .12s ease;
+  }
+  
+  .primaryBtn {
+    background: var(--primary);
+    color: color-mix(in srgb, var(--card) 10%, #ffffff);
+  }
+  .primaryBtn:hover { transform: translateY(-1px); background: var(--primary-hover); }
+  
+  .secondaryBtn { background: transparent; color: var(--text); }
+  .secondaryBtn:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--card) 88%, var(--bg)); }
+  
+  .editBtn { background: transparent; color: var(--text); padding: 8px 10px; }
+  .editBtn:hover { background: color-mix(in srgb, var(--card) 86%, var(--bg)); }
+  
+  .iconBtn {
+    width: 38px; height: 38px;
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0;
+    background: transparent;
+    color: var(--text);
+  }
+  
+  /* create */
+  .createForm {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px;
+    margin-bottom: 14px;
+    background: color-mix(in srgb, var(--card) 95%, var(--bg));
+  }
+  
+  .createGrid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr auto auto;
+    gap: 10px;
+    align-items: end;
+  }
+  
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 12px; color: var(--muted); font-weight: 800; }
+  
+  .field input, .field select {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: color-mix(in srgb, var(--card) 92%, var(--bg));
+    color: var(--text);
+    outline: none;
+  }
+  
+  .field input:focus, .field select:focus {
+    border-color: color-mix(in srgb, var(--border) 30%, #60a5fa);
+    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.20);
+  }
+  
+  .fieldInline { display: flex; align-items: center; gap: 10px; padding: 10px 6px; font-weight: 900; }
+  
+  .colorRow { display: grid; grid-template-columns: 44px 1fr; gap: 8px; align-items: center; }
+  .colorRow input[type="color"] { width: 44px; height: 40px; padding: 0; border-radius: 10px; border: 1px solid var(--border); background: transparent; }
+  
+  .hint { font-size: 12px; color: var(--muted); }
+  
+  .error { margin: 10px 2px 0; color: #ef4444; font-weight: 700; }
+  
+  /* table */
+  .tableWrapper {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: auto;
+  }
+  
+  .table { width: 100%; border-collapse: collapse; min-width: 840px; }
+  
+  .table thead th {
+    position: sticky; top: 0;
+    background: color-mix(in srgb, var(--card) 92%, transparent);
+    backdrop-filter: blur(8px);
+    text-align: left;
+    padding: 12px;
+    font-size: 12px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .table tbody td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    vertical-align: middle;
+  }
+  
+  .actionsCell { text-align: right; white-space: nowrap; }
+  .emptyRow { text-align: center; padding: 20px; color: var(--muted); }
+  
+  .colorCell { display: inline-flex; align-items: center; gap: 10px; }
+  .colorDot {
+    width: 14px; height: 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    display: inline-block;
+  }
+  
+  .badgeActive, .badgeInactive {
+    display: inline-flex;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 900;
+  }
+  .badgeActive { background: rgba(34,197,94,.12); color:#16a34a; border:1px solid rgba(34,197,94,.25); }
+  .badgeInactive { background: rgba(239,68,68,.10); color:#ef4444; border:1px solid rgba(239,68,68,.22); }
+  
+  /* modal */
+  .modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.55);
+    backdrop-filter: blur(10px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 22px;
+  }
+  
+  .modalCard {
+    width: min(860px, 96vw);
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    box-shadow: var(--shadow-strong);
+    padding: 16px;
+    max-height: 90vh;
+    overflow: auto;
+  }
+  
+  .modalHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 6px 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  
+  .modalTitle { font-size: 16px; font-weight: 900; }
+  .modalSubtitle { margin-top: 4px; font-size: 12px; color: var(--muted); }
+  
+  .formGrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    padding: 6px;
+  }
+  
+  .modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 12px 6px 6px;
+    border-top: 1px solid var(--border);
+    margin-top: 12px;
+  }
+  
+  @media (max-width: 900px) {
+    .createGrid { grid-template-columns: 1fr 1fr; }
+    .primaryBtn { width: 100%; }
+    .formGrid { grid-template-columns: 1fr; }
+    .table { min-width: 720px; }
+  }
+  
