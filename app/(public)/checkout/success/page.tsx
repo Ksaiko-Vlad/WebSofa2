@@ -1,40 +1,40 @@
-// app/(public)/checkout/success/page.tsx
 'use client'
 
 import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+import s from './SuccessPage.module.css'
 
 export default function SuccessPage() {
   const params = useSearchParams()
   const sessionId = params.get('session_id')
 
   return (
-    <section style={{ textAlign: 'center', marginTop: '60px' }}>
-      <h2>Оплата успешно завершена ✅</h2>
-      <p>Ваш заказ принят и оплачен.</p>
+    <section className={s.wrapper}>
+      <div className={s.card} role="status" aria-live="polite">
+        <div className={s.icon} aria-hidden>✅</div>
 
-      {sessionId && (
-        <a
-          href={`/api/v1/stripe/invoice/${sessionId}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: 'inline-block',
-            marginTop: '20px',
-            padding: '10px 18px',
-            background: '#111',
-            color: 'white',
-            borderRadius: '8px',
-            textDecoration: 'none',
-          }}
-        >
-          Скачать чек (PDF)
-        </a>
-      )}
+        <h2 className={s.title}>Оплата успешно завершена</h2>
+        <p className={s.subtitle}>
+          Ваш заказ принят и оплачен. Мы уже начали обработку - статус можно будет
+          увидеть в кабинете.
+        </p>
 
-      <div style={{ marginTop: '20px' }}>
-        <a href="/" style={{ color: '#0070f3' }}>
-          ← Вернуться на главную
-        </a>
+        <div className={s.actions}>
+          {sessionId ? (
+            <a
+              className={s.primaryBtn}
+              href={`/api/v1/stripe/invoice/${sessionId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Скачать чек (PDF)
+            </a>
+          ) : null}
+
+          <Link className={s.secondaryBtn} href="/">
+            ← На главную
+          </Link>
+        </div>
       </div>
     </section>
   )
