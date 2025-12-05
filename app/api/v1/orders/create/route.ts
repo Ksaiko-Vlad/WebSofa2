@@ -1,10 +1,12 @@
-// app/api/v1/orders/create/route.ts
+
 import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { z } from 'zod'
+import { cookies } from 'next/headers'
+import { verifyJwt } from '@/lib/jwt'
 
 const cartItemSchema = z.object({
-  productId: z.coerce.number().int().positive(), 
+  productId: z.coerce.number().int().positive(),
   sku: z.string(),
   name: z.string(),
   materialName: z.string(),
@@ -46,7 +48,6 @@ export async function POST(req: Request) {
     const parsed = checkoutSchema.safeParse(json)
 
     if (!parsed.success) {
-      console.error('order/checkout validation error:', parsed.error.issues)
       return NextResponse.json(
         { message: 'Неверные данные', issues: parsed.error.issues },
         { status: 400 }
@@ -55,31 +56,46 @@ export async function POST(req: Request) {
 
     const { customer, delivery, items, note } = parsed.data
 
-    const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
-    // создаём Stripe Checkout Session
+    // вытащим userId из auth cookie (если пользователь залогинен)
+    let userIdStr = ''
+    const token = (await cookies()).get('auth_token')?.value
+    if (token) {
+      try {
+        const payload: any = await verifyJwt(token)
+        userIdStr = String(payload.sub)
+      } catch {
+        userIdStr = ''
+      }
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card'],
+
+      // ✅ лучше так: это прям отдельное поле под “связку” (строка)
+      client_reference_id: userIdStr || undefined,
+
       line_items: items.map((i) => ({
         price_data: {
           currency: 'byn',
-          unit_amount: Math.round(i.price * 100), // BYN 
+          unit_amount: Math.round(i.price * 100),
           product_data: {
             name: `${i.name} (${i.materialName})`,
-            images: i.image_path
-              ? [`${appUrl}${i.image_path}`]
-              : undefined,
+            images: i.image_path ? [`${appUrl}${i.image_path}`] : undefined,
           },
         },
         quantity: i.quantity,
       })),
+
       success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/cart`,
 
-      // всё кладём в metadata
       metadata: {
+        // ✅ дублируем на всякий случай (иногда удобнее читать metadata)
+        user_id: userIdStr,
+
         name: customer.name,
         second_name: customer.second_name ?? '',
         last_name: customer.last_name ?? '',
@@ -98,10 +114,9 @@ export async function POST(req: Request) {
 
         note: note ?? '',
 
-        // items сериализуем в JSON, webhook потом это разберёт
         items: JSON.stringify(
           items.map((i) => ({
-            variantId: i.productId, // id варианта продукта
+            variantId: i.productId,
             sku: i.sku,
             productName: i.name,
             materialName: i.materialName,

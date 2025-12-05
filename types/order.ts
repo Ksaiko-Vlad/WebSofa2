@@ -1,8 +1,17 @@
-export interface UserOrderInfo {
-  id: number | string
+export type UserOrderItemInfo = {
+  name: string
+  material: string
+  quantity: number
+  line_total: number
+}
+
+export type UserOrderInfo = {
+  id: number                 
   created_at: string
   total: number
-  status: string
+  status: OrderStatus
+  items: UserOrderItemInfo[]
+  invoice_available: boolean
 }
 
 export type OrderStatus =

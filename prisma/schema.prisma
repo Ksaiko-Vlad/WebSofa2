@@ -146,6 +146,7 @@ model orders {
   total_amount         Decimal             @default(0.00) @db.Decimal(12, 2)
   address              delivery_addresses?
   items                order_items[]
+  stripe_session_id String?  @unique
   createdBy            users?              @relation("OrdersCreatedBy", fields: [created_by], references: [id])
   shop                 shops?              @relation("OrdersAtShop", fields: [shop_id], references: [id])
   shipment_links       shipment_orders[]

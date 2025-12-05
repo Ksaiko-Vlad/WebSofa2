@@ -6,7 +6,12 @@ import { updateProfileSchema } from '@/server/validations/profile';
 
 export async function POST(req: NextRequest) {
     try {
-        const token = (await cookies()).get('auth_token')?.value;
+        const cookieToken = (await cookies()).get('auth_token')?.value;
+
+        const auth = req.headers.get("authorization") || "";
+        const bearer = auth.startsWith("Bearer ") ? auth.slice(7) : null;
+
+        const token = bearer || cookieToken;
         if (!token) return NextResponse.json({ message: 'Нет доступа' }, { status: 401 });
 
         const payload = await verifyJwt(token);
