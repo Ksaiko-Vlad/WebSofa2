@@ -52,7 +52,6 @@ const HeaderClient: FC<HeaderClientProps> = ({ session }) => {
           Timber&Grain
         </Link>
 
-        {/* Бургер (показывается на мобильных через CSS @media) */}
         <button
           className={s.burger}
           aria-label="Открыть меню"

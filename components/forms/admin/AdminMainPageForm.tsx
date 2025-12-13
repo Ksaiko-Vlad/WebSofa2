@@ -35,6 +35,14 @@ export default async function AdminMainPage() {
           <h3> Магазины</h3>
           <p>Просмотр и редактирование магазинов</p>
         </a>
+        <a href="/admin/shop-stock" className={s.card}>
+          <h3> Каталоги магазинов</h3>
+          <p>Просмотр каталогов магазинов</p>
+        </a>
+        <a href="/admin/managers" className={s.card}>
+          <h3> Менеджеры</h3>
+          <p>Просмотр и назначение администраторов</p>
+        </a>
       </div>
     </section>
   )

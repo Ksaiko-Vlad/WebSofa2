@@ -29,7 +29,6 @@ export default function AdminProductsList() {
       })
     } finally {
       setLoading(false)
-      // добавляем небольшую задержку для плавности
       setTimeout(() => setIsRefreshing(false), 300)
     }
   }, [show])
@@ -40,124 +39,211 @@ export default function AdminProductsList() {
 
   if (loading) {
     return (
-      <div className={s.wrapper}>
+      <section className={s.wrapper}>
         <div className={s.card}>
-          <p className={s.muted}>Загрузка товаров...</p>
+          <p className={s.muted}>Загрузка товаров…</p>
         </div>
-      </div>
+      </section>
     )
   }
 
   return (
-    <div className={s.wrapper}>
+    <section className={s.wrapper}>
       <div className={s.card}>
         <div className={s.headerRow}>
           <h2 className={s.title}>Все товары</h2>
           {isRefreshing && (
-            <span className={s.refreshBadge}>Обновляем...</span>
+            <span className={s.refreshBadge}>Обновляем…</span>
           )}
         </div>
 
         {products.length === 0 ? (
-          <div className={s.ordersPlaceholder}>
-            <p>Товаров пока нет</p>
+          <div className={s.placeholder}>
+            Товаров пока нет.
           </div>
         ) : (
-          <div className={`${s.tableWrapper} ${isRefreshing ? s.tableFading : ''}`}>
-            <table className={s.table}>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Название</th>
-                  <th>Категория</th>
-                  <th>Размеры (мм)</th>
-                  <th>Материалы</th>
-                  <th>Цены</th>
-                  <th>Активность варианта</th>
-                  <th>Активность товара</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.map((p) => (
-                  <tr key={p.id}>
-                    <td>{p.id}</td>
-                    <td className={s.nameCell}>{p.name}</td>
-                    <td>{p.category}</td>
-                    <td>{p.width_mm}×{p.height_mm}×{p.depth_mm}</td>
+          <>
+            {/* DESKTOP / TABLET: таблица */}
+            <div
+              className={`${s.tableWrapper} ${
+                isRefreshing ? s.tableFading : ''
+              }`}
+            >
+              <table className={s.table}>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                    <th>Категория</th>
+                    <th>Размеры (мм)</th>
+                    <th>Материалы</th>
+                    <th>Цены</th>
+                    <th>Активность варианта</th>
+                    <th>Активность товара</th>
+                    <th>Действие</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((p) => (
+                    <tr key={p.id}>
+                      <td>{p.id}</td>
+                      <td className={s.nameCell}>{p.name}</td>
+                      <td>{p.category}</td>
+                      <td>
+                        {p.width_mm}×{p.height_mm}×{p.depth_mm}
+                      </td>
 
-                    {/* Материалы */}
-                    <td>
-                      {p.variants.length === 0 ? (
-                        <span className={s.muted}>Нет вариаций</span>
-                      ) : (
-                        <ul className={s.colList}>
-                          {p.variants.map((v) => (
-                            <li key={v.id}>{v.material.name}</li>
-                          ))}
-                        </ul>
-                      )}
-                    </td>
+                      {/* Материалы */}
+                      <td>
+                        {p.variants.length === 0 ? (
+                          <span className={s.muted}>Нет вариаций</span>
+                        ) : (
+                          <ul className={s.colList}>
+                            {p.variants.map((v) => (
+                              <li key={v.id}>{v.material.name}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </td>
 
-                    {/* Цены */}
-                    <td>
-                      {p.variants.length === 0 ? (
-                        <span className={s.muted}>—</span>
-                      ) : (
-                        <ul className={s.colList}>
-                          {p.variants.map((v) => (
-                            <li key={v.id}>
-                              {Number(v.price).toFixed(2)} BYN
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </td>
+                      {/* Цены */}
+                      <td>
+                        {p.variants.length === 0 ? (
+                          <span className={s.muted}>—</span>
+                        ) : (
+                          <ul className={s.colList}>
+                            {p.variants.map((v) => (
+                              <li key={v.id}>
+                                {Number(v.price).toFixed(2)} BYN
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </td>
 
-                    {/* Активность вариантов */}
-                    <td>
-                      {p.variants.length === 0 ? (
-                        <span className={s.muted}>—</span>
-                      ) : (
-                        <ul className={s.colList}>
-                          {p.variants.map((v) => (
-                            <li key={v.id}>
-                              <span
-                                className={
-                                  v.active ? s.badgeActive : s.badgeInactive
-                                }
-                              >
-                                {v.active ? 'Активен' : 'Выключен'}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </td>
+                      {/* Активность вариантов */}
+                      <td>
+                        {p.variants.length === 0 ? (
+                          <span className={s.muted}>—</span>
+                        ) : (
+                          <ul className={s.colList}>
+                            {p.variants.map((v) => (
+                              <li key={v.id}>
+                                <span
+                                  className={
+                                    v.active ? s.badgeActive : s.badgeInactive
+                                  }
+                                >
+                                  {v.active ? 'Активен' : 'Выключен'}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </td>
 
-                    {/* Активность товара */}
-                    <td>
+                      {/* Активность товара */}
+                      <td>
+                        <span
+                          className={p.active ? s.badgeActive : s.badgeInactive}
+                        >
+                          {p.active ? 'Активен' : 'Выключен'}
+                        </span>
+                      </td>
+
+                      {/* Кнопка редактирования */}
+                      <td>
+                        <button
+                          className={s.editBtn}
+                          onClick={() => setSelected(p)}
+                        >
+                          Редактировать
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* MOBILE: карточки */}
+            <div className={s.mobileList}>
+              {products.map((p) => (
+                <div key={p.id} className={s.productCard}>
+                  <div className={s.productTop}>
+                    <div>
+                      <div className={s.productName}>
+                        {p.name || 'Без названия'}
+                      </div>
+                      <div className={s.productMeta}>
+                        ID {p.id} • {p.category || 'Без категории'}
+                      </div>
+                    </div>
+                    <div>
                       <span
-                        className={p.active ? s.badgeActive : s.badgeInactive}
+                        className={
+                          p.active ? s.badgeActive : s.badgeInactive
+                        }
                       >
                         {p.active ? 'Активен' : 'Выключен'}
                       </span>
-                    </td>
+                    </div>
+                  </div>
 
-                    {/* Кнопка редактирования */}
-                    <td>
-                      <button
-                        className={s.editBtn}
-                        onClick={() => setSelected(p)}
-                      >
-                        Редактировать
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                  <div className={s.productRow}>
+                    Размеры: {p.width_mm}×{p.height_mm}×{p.depth_mm} мм
+                  </div>
+
+                  <div className={s.productRow}>
+                    Материалы:
+                    {p.variants.length === 0 ? (
+                      <span className={s.muted}> Нет вариаций</span>
+                    ) : (
+                      <span className={s.productInlineList}>
+                        {p.variants.map((v, idx) => (
+                          <span key={v.id}>
+                            {idx > 0 && ', '}
+                            {v.material.name}
+                          </span>
+                        ))}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className={s.productRow}>
+                    Цены:
+                    {p.variants.length === 0 ? (
+                      <span className={s.muted}> —</span>
+                    ) : (
+                      <ul className={s.colList}>
+                        {p.variants.map((v) => (
+                          <li key={v.id}>
+                            {Number(v.price).toFixed(2)} BYN •{' '}
+                            <span
+                              className={
+                                v.active ? s.badgeActive : s.badgeInactive
+                              }
+                            >
+                              {v.active ? 'Активен' : 'Выключен'}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
+                  <div className={s.productActions}>
+                    <button
+                      className={s.editBtn}
+                      onClick={() => setSelected(p)}
+                    >
+                      Редактировать
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
@@ -168,13 +254,13 @@ export default function AdminProductsList() {
           product={selected}
           onClose={() => {
             setSelected(null)
-            loadProducts() 
+            loadProducts()
           }}
           onUpdated={() => {
-            loadProducts() 
+            loadProducts()
           }}
         />
       )}
-    </div>
+    </section>
   )
 }

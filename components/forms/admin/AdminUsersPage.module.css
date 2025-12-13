@@ -64,12 +64,9 @@
 .table thead th {
   position: sticky;
   top: 0;
-
-  /* лучше не transparent — чтобы не было странных “просветов” через body */
   background: color-mix(in srgb, var(--card) 92%, var(--background));
   backdrop-filter: blur(8px);
-
-  text-align: left;
+  text-align: center;
   padding: 12px 12px;
   font-size: 12px;
   color: var(--muted);

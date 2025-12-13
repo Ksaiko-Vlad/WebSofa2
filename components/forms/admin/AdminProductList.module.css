@@ -1,65 +1,98 @@
+/* БАЗА */
+
 .wrapper {
-  padding: 20px;
+  --card: #ffffff;
+  --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+
+  min-height: 100%;
+  padding: 28px;
   background: var(--background);
   color: var(--fg);
-
-  /* локальные “поверхности” */
-  --surface: #ffffff;
-  --surface-2: color-mix(in srgb, #ffffff 92%, var(--background));
-  --shadow: 0 4px 20px rgba(0,0,0,0.10);
 }
 
-/* surface для тёмной темы */
 :global(html[data-theme='dark']) .wrapper {
-  --surface: #0f172a;
-  --surface-2: color-mix(in srgb, #0f172a 92%, var(--background));
-  --shadow: 0 4px 20px rgba(0,0,0,0.35);
+  --card: #0f172a;
+  --shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
 }
 
 .card {
-  background: var(--surface);
+  background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 18px;
+  padding: 18px;
   box-shadow: var(--shadow);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.placeholder {
+  padding: 18px;
+  color: var(--muted);
+}
+
+/* HEADER */
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .title {
   font-size: 22px;
-  font-weight: 700;
-  margin-bottom: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.refreshBadge {
+  font-size: 13px;
+  color: var(--muted);
+  animation: fadePulse 1s infinite ease-in-out;
 }
 
 .tableWrapper {
-  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow-y: auto;      /* вертикальный скролл если понадобится */
+  overflow-x: hidden;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 950px;
-  background: var(--surface);
+  background: var(--card);
   color: var(--fg);
 }
 
-.table th,
-.table td {
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: color-mix(in srgb, var(--card) 92%, var(--background));
+  backdrop-filter: blur(8px);
+  padding: 10px 14px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.table tbody td {
   padding: 10px 14px;
   text-align: left;
   border-bottom: 1px solid var(--border);
   vertical-align: top;
-}
-
-.table th {
-  font-weight: 700;
   font-size: 14px;
-  color: var(--muted);
-  background: var(--surface-2);
 }
 
-.table tr:hover {
-  background: color-mix(in srgb, var(--fg) 6%, var(--surface));
-  transition: 0.15s;
+.table tbody tr:hover td {
+  background: color-mix(in srgb, var(--card) 86%, var(--background));
+  transition: background 0.15s ease;
 }
 
 .nameCell {
@@ -72,6 +105,13 @@
   padding: 0;
   list-style: none;
 }
+
+.tableFading {
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+/* БЕЙДЖИ */
 
 .badgeActive,
 .badgeInactive {
@@ -96,39 +136,102 @@
   background: rgba(255, 50, 50, 0.07);
 }
 
+/* КНОПКА РЕДАКТА */
+
 .editBtn {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--fg);
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 13px;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: transform 0.12s ease, background 0.12s ease,
+    border-color 0.12s ease;
 }
 
 .editBtn:hover {
-  background: color-mix(in srgb, var(--fg) 6%, var(--surface));
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--card) 90%, var(--background));
 }
 
-.headerRow {
+/* МОБИЛЬНЫЕ КАРТОЧКИ */
+
+.mobileList {
+  display: none;
+  margin-top: 12px;
+  gap: 10px;
+}
+
+.productCard {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--card) 96%, var(--background));
+}
+
+.productTop {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
 }
 
-.refreshBadge {
-  font-size: 13px;
+.productName {
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.productMeta {
+  font-size: 12px;
   color: var(--muted);
-  animation: fadePulse 1s infinite ease-in-out;
 }
 
-.tableFading {
-  opacity: 0.6;
-  transition: opacity 0.3s ease;
+.productRow {
+  margin-top: 4px;
+  font-size: 13px;
 }
+
+.productInlineList {
+  margin-left: 4px;
+}
+
+.productActions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* АДАПТИВ */
 
 @keyframes fadePulse {
   0%, 100% { opacity: 0.4; }
   50% { opacity: 1; }
+}
+
+@media (max-width: 900px) {
+  .wrapper {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 720px) {
+  .wrapper {
+    padding: 16px;
+  }
+
+  .headerRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tableWrapper {
+    display: none; /* на мобиле таблицу прячем */
+  }
+
+  .mobileList {
+    display: flex; /* и показываем карточки */
+    flex-direction: column;
+  }
 }

@@ -274,7 +274,7 @@ export default function AdminUsersPage() {
                   <th>Роль</th>
                   <th>Статус</th>
                   <th>Создан</th>
-                  <th />
+                  <th>Действие </th>
                 </tr>
               </thead>
 
