@@ -70,6 +70,9 @@ const HeaderClient: FC<HeaderClientProps> = ({ session }) => {
           {isAuthed && role === 'admin'   && <Link href="/admin"   onClick={() => setMenuOpen(false)}>Панель администратора</Link>}
           {isAuthed && role === 'manager' && <Link href="/manager" onClick={() => setMenuOpen(false)}>Панель менеджера</Link>}
           {isAuthed && role === 'driver'  && <Link href="/driver"  onClick={() => setMenuOpen(false)}>Панель водителя</Link>}
+          {isAuthed && role === 'factory_worker' && <Link href="/factory" onClick={() => setMenuOpen(false)}>Панель производства</Link>
+}
+
         </nav>
 
         <div className={s.actions}>

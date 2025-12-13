@@ -150,6 +150,7 @@ model orders {
   createdBy            users?              @relation("OrdersCreatedBy", fields: [created_by], references: [id])
   shop                 shops?              @relation("OrdersAtShop", fields: [shop_id], references: [id])
   shipment_links       shipment_orders[]
+  factory_worker_id    BigInt?
 
   @@index([status])
   @@index([created_at])
