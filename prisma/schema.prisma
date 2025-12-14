@@ -151,6 +151,7 @@ model orders {
   shop                 shops?              @relation("OrdersAtShop", fields: [shop_id], references: [id])
   shipment_links       shipment_orders[]
   factory_worker_id    BigInt?
+  driver_id            BigInt?
 
   @@index([status])
   @@index([created_at])
@@ -196,7 +197,7 @@ model shipments {
   status      ShipmentStatus
   route_hint  String
   started_at  DateTime
-  finished_at DateTime
+  finished_at DateTime?
   comment     String?
   orders      shipment_orders[]
   driver      users             @relation("ShipmentsDriver", fields: [driver_id], references: [id])

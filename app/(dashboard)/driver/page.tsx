@@ -1,14 +1,19 @@
-// app/(factory)/factory/page.tsx
+// app/(driver)/driver/page.tsx
 "use client";
 
 import { Fragment, useEffect, useState } from "react";
 import { useToast } from "@/hooks/useToast";
-import s from "./FactoryOrders.module.css";
+import s from "./DriverOrders.module.css";
 
-type Shop = {
+type Address = {
   id: number | string;
   city: string;
   street: string;
+  house_number: string | null;
+  apartment: string | null;
+  entrance: string | null;
+  floor: string | null;
+  comment: string | null;
 };
 
 type ProductVariantBrief = {
@@ -27,7 +32,7 @@ type OrderItem = {
   productVariant: ProductVariantBrief | null;
 };
 
-type FactoryOrder = {
+type DriverOrder = {
   id: number | string;
   created_at: string;
   status:
@@ -42,14 +47,12 @@ type FactoryOrder = {
   customer_name: string | null;
   customer_phone: string | null;
   total_amount: number | string;
-  shop?: Shop | null;
-  factory_worker_id?: number | string | null;
-  items?: OrderItem[];
+  address: Address | null;
+  items: OrderItem[];
 };
 
 type ApiResponse = {
-  available: FactoryOrder[];
-  mine: FactoryOrder[];
+  orders: DriverOrder[];
   message?: string;
 };
 
@@ -61,10 +64,6 @@ const money = (v: any) => {
 
 const formatStatus = (s: string) => {
   switch (s) {
-    case "created":
-      return "Создан";
-    case "in_production":
-      return "В производстве";
     case "ready_to_ship":
       return "Готов к отгрузке";
     case "in_transit":
@@ -84,16 +83,20 @@ const formatDeliveryType = (t: string) => {
   return t || "—";
 };
 
-export default function FactoryOrdersPage() {
+export default function DriverOrdersPage() {
   const toast = useToast();
 
-  const [available, setAvailable] = useState<FactoryOrder[]>([]);
-  const [mine, setMine] = useState<FactoryOrder[]>([]);
+  const [orders, setOrders] = useState<DriverOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | number | null>(null);
-  const [tab, setTab] = useState<"available" | "mine">("available");
   const [openOrders, setOpenOrders] = useState<Record<string, boolean>>({});
+  
+  // Модальное окно для принятия заказа
+  const [showModal, setShowModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<DriverOrder | null>(null);
+  const [routeHint, setRouteHint] = useState("");
+  const [comment, setComment] = useState("");
 
   // пагинация
   const [page, setPage] = useState(1);
@@ -104,7 +107,7 @@ export default function FactoryOrdersPage() {
       setErr(null);
       setLoading(true);
 
-      const res = await fetch("/api/v1/factory/orders", {
+      const res = await fetch("/api/v1/driver/orders", {
         credentials: "include",
       });
       const json: ApiResponse = await res.json();
@@ -113,9 +116,8 @@ export default function FactoryOrdersPage() {
         throw new Error(json.message || "Ошибка загрузки заказов");
       }
 
-      setAvailable(Array.isArray(json.available) ? json.available : []);
-      setMine(Array.isArray(json.mine) ? json.mine : []);
-      setPage(1); // на любую новую загрузку — первая страница
+      setOrders(Array.isArray(json.orders) ? json.orders : []);
+      setPage(1);
     } catch (e: any) {
       const msg = e?.message ?? "Ошибка загрузки заказов";
       setErr(msg);
@@ -129,50 +131,60 @@ export default function FactoryOrdersPage() {
     load();
   }, []);
 
-  // при смене вкладки возвращаемся на первую страницу
-  useEffect(() => {
-    setPage(1);
-  }, [tab]);
+  const totalOrders = orders.length;
+  const totalPages = totalOrders === 0 ? 1 : Math.ceil(totalOrders / pageSize);
 
-  const list = tab === "available" ? available : mine;
-  const totalCurrent = list.length;
-  const totalPages =
-    totalCurrent === 0 ? 1 : Math.ceil(totalCurrent / pageSize);
+  const startIndex = totalOrders === 0 ? 0 : (page - 1) * pageSize;
+  const endIndex = totalOrders === 0 ? 0 : Math.min(startIndex + pageSize, totalOrders);
+  const pagedOrders = orders.slice(startIndex, endIndex);
 
-  const startIndex = totalCurrent === 0 ? 0 : (page - 1) * pageSize;
-  const endIndex =
-    totalCurrent === 0 ? 0 : Math.min(startIndex + pageSize, totalCurrent);
-  const pagedList = list.slice(startIndex, endIndex);
+  const handleOpenModal = (order: DriverOrder) => {
+    setSelectedOrder(order);
+    setRouteHint("");
+    setComment("");
+    setShowModal(true);
+  };
 
-  async function doAction(
-    orderId: number | string,
-    action: "take" | "mark_ready"
-  ) {
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedOrder(null);
+    setRouteHint("");
+    setComment("");
+  };
+
+  async function takeOrder() {
+    if (!selectedOrder) return;
+
     try {
-      setSavingId(orderId);
-      const res = await fetch("/api/v1/factory/orders", {
+      setSavingId(selectedOrder.id);
+      
+      const res = await fetch("/api/v1/driver/orders/", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId: Number(orderId), action }),
+        body: JSON.stringify({
+          orderId: Number(selectedOrder.id),
+          routeHint: routeHint.trim() || null,
+          comment: comment.trim() || null,
+        }),
       });
 
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.message || "Ошибка обновления заказа");
+      if (!res.ok) {
+        throw new Error(json?.message || `Ошибка ${res.status}: ${json?.error || 'Unknown error'}`);
+      }
 
       toast.show({
-        title:
-          action === "take"
-            ? "Заказ взят в производство"
-            : "Заказ отмечен как готов к отгрузке",
-        description: `Заказ #${orderId}`,
+        title: "Заказ принят",
+        description: `Заказ #${selectedOrder.id} взят в доставку. Shipment ID: ${json.shipmentId || 'N/A'}`,
       });
-
+      
+      handleCloseModal();
       await load();
     } catch (e: any) {
       toast.show({
         title: "Ошибка",
-        description: e?.message ?? "Не удалось обновить заказ",
+        description: e?.message ?? "Не удалось принять заказ",
       });
     } finally {
       setSavingId(null);
@@ -192,6 +204,21 @@ export default function FactoryOrdersPage() {
 
   const handleNext = () => {
     setPage((p) => Math.min(totalPages, p + 1));
+  };
+
+  const formatAddress = (address: Address | null) => {
+    if (!address) return "—";
+    
+    const parts = [
+      address.city,
+      address.street,
+      address.house_number && `д. ${address.house_number}`,
+      address.apartment && `кв. ${address.apartment}`,
+      address.entrance && `подъезд ${address.entrance}`,
+      address.floor && `этаж ${address.floor}`,
+    ].filter(Boolean);
+    
+    return parts.join(", ");
   };
 
   if (loading) {
@@ -214,41 +241,24 @@ export default function FactoryOrdersPage() {
     );
   }
 
-  const totalAvailable = available.length;
-  const totalMine = mine.length;
-
   return (
     <section className={s.wrapper}>
       <div className={s.card}>
         <div className={s.headerRow}>
-          <h1 className={s.title}>Заказы производства</h1>
+          <h1 className={s.title}>Заказы для доставки</h1>
           <div className={s.headerActions}>
+            <button
+              type="button"
+              className={s.secondaryBtn}
+              onClick={load}
+              disabled={loading}
+            >
+              Обновить
+            </button>
             <span className={s.muted}>
-              Новые: <b>{totalAvailable}</b> • Мои: <b>{totalMine}</b>
+              Доступно заказов: <b>{totalOrders}</b>
             </span>
           </div>
-        </div>
-
-        {/* Табы */}
-        <div className={s.tabs}>
-          <button
-            type="button"
-            className={`${s.tabBtn} ${
-              tab === "available" ? s.tabBtnActive : ""
-            }`}
-            onClick={() => setTab("available")}
-          >
-            Новые (created)
-          </button>
-          <button
-            type="button"
-            className={`${s.tabBtn} ${
-              tab === "mine" ? s.tabBtnActive : ""
-            }`}
-            onClick={() => setTab("mine")}
-          >
-            Мои в производстве
-          </button>
         </div>
 
         {/* Десктоп / планшет — таблица */}
@@ -260,7 +270,7 @@ export default function FactoryOrdersPage() {
                   <th>ID</th>
                   <th>Дата</th>
                   <th>Клиент</th>
-                  <th>Магазин</th>
+                  <th>Адрес доставки</th>
                   <th>Доставка</th>
                   <th>Статус</th>
                   <th>Сумма</th>
@@ -269,29 +279,18 @@ export default function FactoryOrdersPage() {
                 </tr>
               </thead>
               <tbody>
-                {totalCurrent === 0 && (
+                {totalOrders === 0 && (
                   <tr>
                     <td colSpan={9} className={s.placeholder}>
-                      В этой вкладке нет заказов.
+                      Нет доступных заказов для доставки.
                     </td>
                   </tr>
                 )}
 
-                {pagedList.map((o) => {
+                {pagedOrders.map((o) => {
                   const orderId = String(o.id);
                   const isOpen = !!openOrders[orderId];
                   const items = Array.isArray(o.items) ? o.items : [];
-
-                  let actionLabel: string | null = null;
-                  let actionType: "take" | "mark_ready" | null = null;
-
-                  if (tab === "available" && o.status === "created") {
-                    actionLabel = "Взять в производство";
-                    actionType = "take";
-                  } else if (tab === "mine" && o.status === "in_production") {
-                    actionLabel = "Готов к отгрузке";
-                    actionType = "mark_ready";
-                  }
 
                   return (
                     <Fragment key={orderId}>
@@ -300,21 +299,25 @@ export default function FactoryOrdersPage() {
                         <td>
                           {new Date(o.created_at).toLocaleString("ru-RU")}
                         </td>
-                        <td>{o.customer_name || "—"}</td>
                         <td>
-                          {o.shop
-                            ? `#${o.shop.id} • ${o.shop.city}, ${o.shop.street}`
-                            : "—"}
+                          <div>{o.customer_name || "—"}</div>
+                          <div className={s.phone}>{o.customer_phone || ""}</div>
+                        </td>
+                        <td>
+                          <div className={s.address}>
+                            {formatAddress(o.address)}
+                          </div>
+                          {o.address?.comment && (
+                            <div className={s.comment}>
+                              {o.address.comment}
+                            </div>
+                          )}
                         </td>
                         <td>{formatDeliveryType(o.delivery_type)}</td>
                         <td>
                           <span
                             className={`${s.statusBadge} ${
-                              o.status === "created"
-                                ? s.statusCreated
-                                : o.status === "in_production"
-                                ? s.statusInProd
-                                : o.status === "ready_to_ship"
+                              o.status === "ready_to_ship"
                                 ? s.statusReady
                                 : ""
                             }`}
@@ -339,20 +342,14 @@ export default function FactoryOrdersPage() {
                           )}
                         </td>
                         <td className={s.actionsCell}>
-                          {actionLabel && actionType ? (
-                            <button
-                              type="button"
-                              className={s.primaryBtn}
-                              disabled={savingId === orderId}
-                              onClick={() => doAction(orderId, actionType)}
-                            >
-                              {savingId === orderId
-                                ? "Обновляем…"
-                                : actionLabel}
-                            </button>
-                          ) : (
-                            <span className={s.muted}>—</span>
-                          )}
+                          <button
+                            type="button"
+                            className={s.primaryBtn}
+                            onClick={() => handleOpenModal(o)}
+                            disabled={savingId === orderId}
+                          >
+                            {savingId === orderId ? "Принимаем…" : "Принять заказ"}
+                          </button>
                         </td>
                       </tr>
 
@@ -389,8 +386,7 @@ export default function FactoryOrdersPage() {
                                         Кол-во: <b>{it.quantity}</b>
                                       </span>
                                       <span>
-                                        Цена:{" "}
-                                        <b>{money(pv?.price)} BYN</b>
+                                        Цена: <b>{money(pv?.price)} BYN</b>
                                       </span>
                                       <span
                                         className={
@@ -421,26 +417,15 @@ export default function FactoryOrdersPage() {
 
         {/* Мобильные карточки */}
         <div className={s.mobileList}>
-          {totalCurrent === 0 && (
+          {totalOrders === 0 && (
             <div className={s.placeholder}>
-              В этой вкладке нет заказов.
+              Нет доступных заказов для доставки.
             </div>
           )}
 
-          {pagedList.map((o) => {
+          {pagedOrders.map((o) => {
             const orderId = String(o.id);
             const items = Array.isArray(o.items) ? o.items : [];
-
-            let actionLabel: string | null = null;
-            let actionType: "take" | "mark_ready" | null = null;
-
-            if (tab === "available" && o.status === "created") {
-              actionLabel = "Взять в производство";
-              actionType = "take";
-            } else if (tab === "mine" && o.status === "in_production") {
-              actionLabel = "Готов к отгрузке";
-              actionType = "mark_ready";
-            }
 
             return (
               <div key={orderId} className={s.orderCard}>
@@ -452,11 +437,7 @@ export default function FactoryOrdersPage() {
                     </span>
                     <span
                       className={`${s.statusBadge} ${
-                        o.status === "created"
-                          ? s.statusCreated
-                          : o.status === "in_production"
-                          ? s.statusInProd
-                          : o.status === "ready_to_ship"
+                        o.status === "ready_to_ship"
                           ? s.statusReady
                           : ""
                       }`}
@@ -468,15 +449,16 @@ export default function FactoryOrdersPage() {
 
                 <div className={s.orderBody}>
                   <div className={s.orderMeta}>
-                    Клиент: {o.customer_name || "—"} •{" "}
-                    {o.customer_phone || "—"}
+                    Клиент: {o.customer_name || "—"} • {o.customer_phone || "—"}
                   </div>
                   <div className={s.orderMeta}>
-                    Магазин:{" "}
-                    {o.shop
-                      ? `#${o.shop.id} • ${o.shop.city}, ${o.shop.street}`
-                      : "—"}
+                    Адрес: {formatAddress(o.address)}
                   </div>
+                  {o.address?.comment && (
+                    <div className={s.orderMeta}>
+                      Комментарий: {o.address.comment}
+                    </div>
+                  )}
                   <div className={s.orderMeta}>
                     Доставка: {formatDeliveryType(o.delivery_type)}
                   </div>
@@ -487,67 +469,79 @@ export default function FactoryOrdersPage() {
 
                 {items.length > 0 && (
                   <div className={s.itemsBlock}>
-                    {items.map((it) => {
-                      const pv = it.productVariant;
-                      const name = pv?.product?.name ?? "";
-                      const material = pv?.material?.name
-                        ? `  ${pv.material.name}`
-                        : "";
-                      const sku = pv?.sku ?? "—";
+                    <button
+                      type="button"
+                      className={s.secondaryBtn}
+                      onClick={() => toggleOpen(orderId)}
+                    >
+                      {openOrders[orderId]
+                        ? "Скрыть товары"
+                        : `Показать товары (${items.length})`}
+                    </button>
+                    
+                    {openOrders[orderId] && (
+                      <div className={s.itemsListMobile}>
+                        {items.map((it) => {
+                          const pv = it.productVariant;
+                          const name = pv?.product?.name ?? "";
+                          const material = pv?.material?.name
+                            ? `  ${pv.material.name}`
+                            : "";
+                          const sku = pv?.sku ?? "—";
 
-                      return (
-                        <div key={String(it.id)} className={s.itemPill}>
-                          <div className={s.itemPillTitle}>
-                            {name || "Без названия"}
-                            {material && (
-                              <span className={s.muted}>{material}</span>
-                            )}
-                          </div>
-                          <div className={s.itemPillMeta}>
-                            SKU: {sku} • Кол-во: {it.quantity} Цена:{" "}
-                            {money(pv?.price)} BYN
-                          </div>
-                          <div
-                            className={
-                              it.is_from_shop_stock
-                                ? s.badgeStock
-                                : s.badgeCustom
-                            }
-                          >
-                            {it.is_from_shop_stock
-                              ? "Со склада"
-                              : "Под заказ"}
-                          </div>
-                        </div>
-                      );
-                    })}
+                          return (
+                            <div key={String(it.id)} className={s.itemPill}>
+                              <div className={s.itemPillTitle}>
+                                {name || "Без названия"}
+                                {material && (
+                                  <span className={s.muted}>{material}</span>
+                                )}
+                              </div>
+                              <div className={s.itemPillMeta}>
+                                SKU: {sku} • Кол-во: {it.quantity} Цена:{" "}
+                                {money(pv?.price)} BYN
+                              </div>
+                              <div
+                                className={
+                                  it.is_from_shop_stock
+                                    ? s.badgeStock
+                                    : s.badgeCustom
+                                }
+                              >
+                                {it.is_from_shop_stock
+                                  ? "Со склада"
+                                  : "Под заказ"}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {actionLabel && actionType && (
-                  <button
-                    type="button"
-                    className={s.primaryBtnFull}
-                    disabled={savingId === orderId}
-                    onClick={() => doAction(orderId, actionType)}
-                  >
-                    {savingId === orderId ? "Обновляем…" : actionLabel}
-                  </button>
-                )}
+                <button
+                  type="button"
+                  className={s.primaryBtnFull}
+                  onClick={() => handleOpenModal(o)}
+                  disabled={savingId === orderId}
+                >
+                  {savingId === orderId ? "Принимаем…" : "Принять заказ"}
+                </button>
               </div>
             );
           })}
         </div>
 
-        {/* Пагинация общая для вкладки */}
-        {totalCurrent > 0 && (
+        {/* Пагинация */}
+        {totalOrders > 0 && (
           <div className={s.paginationRow}>
             <div className={s.pageInfo}>
               Показаны{" "}
               <b>
                 {startIndex + 1}-{endIndex}
               </b>{" "}
-              из <b>{totalCurrent}</b> заказов
+              из <b>{totalOrders}</b> заказов
             </div>
             <div className={s.pageControls}>
               <span className={s.pageSizeLabel}>На странице:</span>
@@ -588,6 +582,79 @@ export default function FactoryOrdersPage() {
           </div>
         )}
       </div>
+
+      {/* Модальное окно принятия заказа */}
+      {showModal && selectedOrder && (
+        <div className={s.modalOverlay}>
+          <div className={s.modal}>
+            <div className={s.modalHeader}>
+              <h2>Принять заказ #{selectedOrder.id}</h2>
+              <button
+                type="button"
+                className={s.modalClose}
+                onClick={handleCloseModal}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className={s.modalBody}>
+              <div className={s.modalInfo}>
+                <p><strong>Клиент:</strong> {selectedOrder.customer_name || "—"} ({selectedOrder.customer_phone || "—"})</p>
+                <p><strong>Адрес:</strong> {formatAddress(selectedOrder.address)}</p>
+                <p><strong>Сумма:</strong> {money(selectedOrder.total_amount)} BYN</p>
+              </div>
+
+              <div className={s.formGroup}>
+                <label htmlFor="routeHint" className={s.formLabel}>
+                  Маршрутная подсказка (необязательно)
+                </label>
+                <textarea
+                  id="routeHint"
+                  className={s.textarea}
+                  value={routeHint}
+                  onChange={(e) => setRouteHint(e.target.value)}
+                  placeholder="Например: заезд со двора, дом с синими воротами"
+                  rows={2}
+                />
+              </div>
+
+              <div className={s.formGroup}>
+                <label htmlFor="comment" className={s.formLabel}>
+                  Комментарий для курьера (необязательно)
+                </label>
+                <textarea
+                  id="comment"
+                  className={s.textarea}
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Дополнительная информация по доставке"
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            <div className={s.modalFooter}>
+              <button
+                type="button"
+                className={s.secondaryBtn}
+                onClick={handleCloseModal}
+                disabled={!!savingId}
+              >
+                Отмена
+              </button>
+              <button
+                type="button"
+                className={s.primaryBtn}
+                onClick={takeOrder}
+                disabled={!!savingId}
+              >
+                {savingId ? "Принимаем…" : "Принять заказ"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
