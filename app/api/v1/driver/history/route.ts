@@ -71,6 +71,7 @@ export async function GET(req: NextRequest) {
             order: {
               include: {
                 address: true,
+                shop: true,
                 items: {
                   include: {
                     productVariant: {
@@ -86,13 +87,11 @@ export async function GET(req: NextRequest) {
           },
         },
       },
-      // Исправленный orderBy - должен быть массивом
       orderBy: [
-        { finished_at: "desc" },
-        { started_at: "desc" }
+        { finished_at: "desc" }
       ],
     });
-
+    
     // Преобразуем BigInt в строки
     const safeShipments = jsonSafe(shipments);
     

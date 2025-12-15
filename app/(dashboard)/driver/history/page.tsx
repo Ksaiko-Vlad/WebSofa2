@@ -16,6 +16,15 @@ type Address = {
   comment: string | null;
 };
 
+type Shop = {
+  id: number | string;
+  name: string | null;
+  city: string;
+  street: string;
+  phone: string | null;
+  email: string | null;
+};
+
 type ProductVariantBrief = {
   id: number | string;
   sku: string | null;
@@ -41,6 +50,7 @@ type Order = {
   customer_phone: string | null;
   total_amount: number | string;
   address: Address | null;
+  shop: Shop | null; // Добавляем магазин
   items: OrderItem[];
   driver_id: number | string | null;
 };
@@ -120,6 +130,42 @@ const formatTime = (dateStr: string) => {
     hour: "2-digit",
     minute: "2-digit",
   });
+};
+
+const formatAddress = (order: Order) => {
+  // Если доставка домой и есть адрес
+  if (order.delivery_type === "home_delivery" && order.address) {
+    const parts = [
+      order.address.city,
+      order.address.street,
+      order.address.house_number && `д. ${order.address.house_number}`,
+      order.address.apartment && `кв. ${order.address.apartment}`,
+      order.address.entrance && `подъезд ${order.address.entrance}`,
+      order.address.floor && `этаж ${order.address.floor}`,
+    ].filter(Boolean);
+    
+    return parts.join(", ");
+  }
+  
+  // Если самовывоз и есть магазин
+  if (order.delivery_type === "pickup" && order.shop) {
+    const parts = [
+      order.shop.city,
+      order.shop.street,
+      order.shop.name && `(${order.shop.name})`
+    ].filter(Boolean);
+    
+    return parts.join(", ");
+  }
+  
+  return "—";
+};
+
+const getAddressComment = (order: Order) => {
+  if (order.delivery_type === "home_delivery" && order.address?.comment) {
+    return order.address.comment;
+  }
+  return null;
 };
 
 type FilterStatus = "all" | "delivered" | "cancelled";
@@ -246,21 +292,6 @@ export default function DriverHistoryPage() {
 
   const handleNext = () => {
     setPage((p) => Math.min(totalPages, p + 1));
-  };
-
-  const formatAddress = (address: Address | null) => {
-    if (!address) return "—";
-    
-    const parts = [
-      address.city,
-      address.street,
-      address.house_number && `д. ${address.house_number}`,
-      address.apartment && `кв. ${address.apartment}`,
-      address.entrance && `подъезд ${address.entrance}`,
-      address.floor && `этаж ${address.floor}`,
-    ].filter(Boolean);
-    
-    return parts.join(", ");
   };
 
   const handleApplyFilters = () => {
@@ -565,6 +596,7 @@ export default function DriverHistoryPage() {
                                 const orderId = String(order.id);
                                 const isOrderOpen = !!openOrders[orderId];
                                 const items = Array.isArray(order.items) ? order.items : [];
+                                const addressComment = getAddressComment(order);
 
                                 return (
                                   <div key={orderId} className={s.orderCard}>
@@ -591,12 +623,15 @@ export default function DriverHistoryPage() {
                                         <span>Клиент: {order.customer_name || "—"} • {order.customer_phone || "—"}</span>
                                         <span>Создан: {formatDateTime(order.created_at)}</span>
                                         <span>Доставка: {formatDeliveryType(order.delivery_type)}</span>
+                                        {order.delivery_type === "pickup" && order.shop && (
+                                          <span>Магазин: {order.shop.name || `#${order.shop.id}`}</span>
+                                        )}
                                       </div>
                                       <div className={s.orderAddress}>
-                                        <strong>Адрес:</strong> {formatAddress(order.address)}
-                                        {order.address?.comment && (
+                                        <strong>Адрес:</strong> {formatAddress(order)}
+                                        {addressComment && (
                                           <div className={s.addressComment}>
-                                            {order.address.comment}
+                                            {addressComment}
                                           </div>
                                         )}
                                       </div>
@@ -731,6 +766,7 @@ export default function DriverHistoryPage() {
                     const orderId = String(order.id);
                     const isOrderOpen = !!openOrders[orderId];
                     const items = Array.isArray(order.items) ? order.items : [];
+                    const addressComment = getAddressComment(order);
 
                     return (
                       <div key={orderId} className={s.orderCardMobile}>
@@ -744,9 +780,15 @@ export default function DriverHistoryPage() {
                           <div className={s.orderMetaMobile}>
                             <div>Клиент: {order.customer_name || "—"}</div>
                             <div>Телефон: {order.customer_phone || "—"}</div>
-                            <div>Сумма: <b>{money(order.total_amount)} BYN</b></div>
-                            <div>Адрес: {formatAddress(order.address)}</div>
                             <div>Доставка: {formatDeliveryType(order.delivery_type)}</div>
+                            {order.delivery_type === "pickup" && order.shop && (
+                              <div>Магазин: {order.shop.name || `#${order.shop.id}`}</div>
+                            )}
+                            <div>Адрес: {formatAddress(order)}</div>
+                            {addressComment && (
+                              <div>Комментарий: {addressComment}</div>
+                            )}
+                            <div>Сумма: <b>{money(order.total_amount)} BYN</b></div>
                           </div>
                           <button
                             type="button"

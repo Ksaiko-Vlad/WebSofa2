@@ -1,3 +1,4 @@
+// components/forms/home/PromoCard.tsx
 'use client';
 
 import type { FC } from 'react';
@@ -12,14 +13,14 @@ const PromoCard: FC = () => {
   const showPromo = (): void => {
     if (cd.active) return;
 
-    
+    // Копируем промокод в буфер обмена
     if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-      void navigator.clipboard.writeText('Divan2025').catch(() => {});
+      void navigator.clipboard.writeText('Divan2025').catch(() => { });
     }
 
     show({
-      title: 'Divan2025',
-      description: 'Cкидка 3% при заказе у менеджера в магазине.',
+      title: 'Промокод скопирован!',
+      description: 'Divan2025 - скидка 3% при заказе у менеджера в магазине.',
       duration: 6000,
     });
 
@@ -29,22 +30,40 @@ const PromoCard: FC = () => {
   return (
     <section className={s.container}>
       <div className={s.card}>
-        <div>
+        <div className={s.content}>
           <h2 className={s.title}>Скидка 3% при заказе у менеджера</h2>
-          <p className={s.muted}>
-            Покажите промокод менеджеру в магазине и получите скидку на оформление.
+          <p className={s.description}>
+            Нажмите на кнопку, чтобы получить промокод. Покажите его менеджеру в магазине
+            и получите скидку на оформление. Действует на весь ассортимент мебели.
           </p>
-          <button
-            className="btn btn-primary"
-            onClick={showPromo}
-            disabled={cd.active}
-          >
-            {cd.active ? `Повторно через ${cd.left}с` : 'Показать промокод'}
-          </button>
+          <div className={s.features}>
+            <span className={s.feature}>✓ Работает во всех магазинах</span>
+            <span className={s.feature}>✓ Действует весь 2025 год</span>
+          </div>
+          <div className={s.promoCode}>
+            <button
+              className={s.copyButton}
+              onClick={showPromo}
+              disabled={cd.active}
+              aria-label="Показать и скопировать промокод"
+            >
+              {cd.active ? ` Повторно через ${cd.left}с` : ' Показать промокод'}
+            </button>
+          </div>
         </div>
 
         <div className={s.promoBox}>
-          <span className="muted">Здесь может быть промо-изображение</span>
+          <div className={s.promoImage}>
+            <div className={s.promoOverlay}>
+              <span className={s.promoText}>-3%</span>
+              <span className={s.promoSubtext}>при заказе в магазине</span>
+            </div>
+          </div>
+          <div className={s.promoInfo}>
+            <span className={s.infoText}>
+              Промокод появится в уведомлении после нажатия кнопки
+            </span>
+          </div>
         </div>
       </div>
     </section>

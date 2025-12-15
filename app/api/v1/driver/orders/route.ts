@@ -32,10 +32,26 @@ export async function GET(req: NextRequest) {
     const orders = await prisma.orders.findMany({
       where: {
         status: "ready_to_ship",
-        driver_id: null,
+        // Исключаем заказы, которые уже в активных доставках
+        shipment_links: {
+          none: {
+            shipment: {
+              status: "in_transit"
+            }
+          }
+        },
+        // Исключаем заказы, которые состоят ТОЛЬКО из товаров со склада магазина
+        NOT: {
+          items: {
+            every: {
+              is_from_shop_stock: true,
+            },
+          },
+        },
       },
       include: {
         address: true,
+        shop: true,
         items: {
           include: {
             productVariant: {
@@ -92,7 +108,21 @@ export async function POST(req: NextRequest) {
     // Проверяем, существует ли заказ и доступен ли он
     const order = await prisma.orders.findUnique({
       where: { id: bigOrderId },
-      select: { id: true, status: true, driver_id: true },
+      select: { 
+        id: true, 
+        status: true,
+        // Проверяем, не связан ли уже заказ с активным shipment
+        shipment_links: {
+          where: {
+            shipment: {
+              status: "in_transit"
+            }
+          },
+          select: {
+            shipment_id: true
+          }
+        }
+      },
     });
 
     if (!order) {
@@ -106,7 +136,8 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    if (order.driver_id !== null) {
+    // Проверяем, не взят ли уже заказ в активную доставку
+    if (order.shipment_links.length > 0) {
       return NextResponse.json({ 
         message: "Этот заказ уже взят другим водителем" 
       }, { status: 400 });
@@ -114,12 +145,12 @@ export async function POST(req: NextRequest) {
 
     // Атомарная транзакция
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Обновляем статус заказа и назначаем водителя
+      // 1. Обновляем только статус заказа (БЕЗ driver_id!)
       const updatedOrder = await tx.orders.update({
         where: { id: bigOrderId },
         data: {
           status: "in_transit",
-          driver_id: driverId,
+          // driver_id: driverId, // Убираем эту строку
         },
       });
 
@@ -161,13 +192,11 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     console.error("Error in POST /api/v1/driver/orders:", e);
     
-    // Проверяем различные типы ошибок
     let errorMessage = "Ошибка при изменении статуса заказа";
     
     if (e instanceof Error) {
       console.error("Error details:", e.message);
       
-      // Проверяем специфичные ошибки Prisma
       if (e.message.includes("Unique constraint")) {
         errorMessage = "Этот заказ уже связан с другим shipment";
       } else if (e.message.includes("foreign key constraint")) {

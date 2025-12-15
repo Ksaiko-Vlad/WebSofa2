@@ -16,6 +16,15 @@ type Address = {
     comment: string | null;
 };
 
+type Shop = {
+    id: number | string;
+    name: string | null;
+    city: string;
+    street: string;
+    phone: string | null;
+    email: string | null;
+};
+
 type ProductVariantBrief = {
     id: number | string;
     sku: string | null;
@@ -48,6 +57,7 @@ type DriverOrder = {
     customer_phone: string | null;
     total_amount: number | string;
     address: Address | null;
+    shop: Shop | null; // Добавляем магазин
     items: OrderItem[];
 };
 
@@ -81,6 +91,42 @@ const formatDeliveryType = (t: string) => {
     if (t === "pickup") return "Самовывоз";
     if (t === "home_delivery") return "Доставка";
     return t || "—";
+};
+
+const formatAddress = (order: DriverOrder) => {
+    // Если доставка домой и есть адрес
+    if (order.delivery_type === "home_delivery" && order.address) {
+        const parts = [
+            order.address.city,
+            order.address.street,
+            order.address.house_number && `д. ${order.address.house_number}`,
+            order.address.apartment && `кв. ${order.address.apartment}`,
+            order.address.entrance && `подъезд ${order.address.entrance}`,
+            order.address.floor && `этаж ${order.address.floor}`,
+        ].filter(Boolean);
+        
+        return parts.join(", ");
+    }
+    
+    // Если самовывоз и есть магазин
+    if (order.delivery_type === "pickup" && order.shop) {
+        const parts = [
+            order.shop.city,
+            order.shop.street,
+            order.shop.name && `(${order.shop.name})`
+        ].filter(Boolean);
+        
+        return parts.join(", ");
+    }
+    
+    return "—";
+};
+
+const getAddressComment = (order: DriverOrder) => {
+    if (order.delivery_type === "home_delivery" && order.address?.comment) {
+        return order.address.comment;
+    }
+    return null;
 };
 
 export default function DriverOrdersPage() {
@@ -158,7 +204,7 @@ export default function DriverOrdersPage() {
         try {
             setSavingId(selectedOrder.id);
 
-            const res = await fetch("/api/v1/driver/orders/", {
+            const res = await fetch("/api/v1/driver/orders", {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -206,21 +252,6 @@ export default function DriverOrdersPage() {
         setPage((p) => Math.min(totalPages, p + 1));
     };
 
-    const formatAddress = (address: Address | null) => {
-        if (!address) return "—";
-
-        const parts = [
-            address.city,
-            address.street,
-            address.house_number && `д. ${address.house_number}`,
-            address.apartment && `кв. ${address.apartment}`,
-            address.entrance && `подъезд ${address.entrance}`,
-            address.floor && `этаж ${address.floor}`,
-        ].filter(Boolean);
-
-        return parts.join(", ");
-    };
-
     if (loading) {
         return (
             <section className={s.wrapper}>
@@ -266,8 +297,8 @@ export default function DriverOrdersPage() {
                                 <tr>
                                     <th>ID</th>
                                     <th>Клиент</th>
-                                    <th>Адрес доставки</th>
-                                    <th>Доставка</th>
+                                    <th>Адрес доставки/магазин</th>
+                                    <th>Тип доставки</th>
                                     <th>Статус</th>
                                     <th>Сумма</th>
                                     <th>Товары</th>
@@ -277,7 +308,7 @@ export default function DriverOrdersPage() {
                             <tbody>
                                 {totalOrders === 0 && (
                                     <tr>
-                                        <td colSpan={9} className={s.placeholder}>
+                                        <td colSpan={8} className={s.placeholder}>
                                             Нет доступных заказов для доставки.
                                         </td>
                                     </tr>
@@ -287,6 +318,7 @@ export default function DriverOrdersPage() {
                                     const orderId = String(o.id);
                                     const isOpen = !!openOrders[orderId];
                                     const items = Array.isArray(o.items) ? o.items : [];
+                                    const addressComment = getAddressComment(o);
 
                                     return (
                                         <Fragment key={orderId}>
@@ -298,15 +330,22 @@ export default function DriverOrdersPage() {
                                                 </td>
                                                 <td>
                                                     <div className={s.address}>
-                                                        {formatAddress(o.address)}
+                                                        {formatAddress(o)}
                                                     </div>
-                                                    {o.address?.comment && (
+                                                    {addressComment && (
                                                         <div className={s.comment}>
-                                                            {o.address.comment}
+                                                            {addressComment}
                                                         </div>
                                                     )}
                                                 </td>
-                                                <td>{formatDeliveryType(o.delivery_type)}</td>
+                                                <td>
+                                                    {formatDeliveryType(o.delivery_type)}
+                                                    {o.delivery_type === "pickup" && o.shop && (
+                                                        <div className={s.shopInfo}>
+                                                            Магазин: {o.shop.name || `#${o.shop.id}`}
+                                                        </div>
+                                                    )}
+                                                </td>
                                                 <td>
                                                     <span
                                                         className={`${s.statusBadge} ${o.status === "ready_to_ship"
@@ -347,7 +386,7 @@ export default function DriverOrdersPage() {
 
                                             {isOpen && items.length > 0 && (
                                                 <tr key={`${orderId}-items`}>
-                                                    <td colSpan={9} className={s.itemsCell}>
+                                                    <td colSpan={8} className={s.itemsCell}>
                                                         <div className={s.itemsList}>
                                                             {items.map((it) => {
                                                                 const pv = it.productVariant;
@@ -380,6 +419,17 @@ export default function DriverOrdersPage() {
                                                                             <span>
                                                                                 Цена: <b>{money(pv?.price)} BYN</b>
                                                                             </span>
+                                                                            <span
+                                                                                className={
+                                                                                    it.is_from_shop_stock
+                                                                                        ? s.badgeStock
+                                                                                        : s.badgeCustom
+                                                                                }
+                                                                            >
+                                                                                {it.is_from_shop_stock
+                                                                                    ? "Со склада"
+                                                                                    : "Под заказ"}
+                                                                            </span>
                                                                         </div>
                                                                     </div>
                                                                 );
@@ -407,6 +457,7 @@ export default function DriverOrdersPage() {
                     {pagedOrders.map((o) => {
                         const orderId = String(o.id);
                         const items = Array.isArray(o.items) ? o.items : [];
+                        const addressComment = getAddressComment(o);
 
                         return (
                             <div key={orderId} className={s.orderCard}>
@@ -429,15 +480,18 @@ export default function DriverOrdersPage() {
                                         Клиент: {o.customer_name || "—"} • {o.customer_phone || "—"}
                                     </div>
                                     <div className={s.orderMeta}>
-                                        Адрес: {formatAddress(o.address)}
+                                        Адрес: {formatAddress(o)}
                                     </div>
-                                    {o.address?.comment && (
+                                    {addressComment && (
                                         <div className={s.orderMeta}>
-                                            Комментарий: {o.address.comment}
+                                            Комментарий: {addressComment}
                                         </div>
                                     )}
                                     <div className={s.orderMeta}>
                                         Доставка: {formatDeliveryType(o.delivery_type)}
+                                        {o.delivery_type === "pickup" && o.shop && (
+                                            <span> • Магазин: {o.shop.name || `#${o.shop.id}`}</span>
+                                        )}
                                     </div>
                                     <div className={s.orderMeta}>
                                         Сумма: <b>{money(o.total_amount)} BYN</b>
@@ -478,6 +532,17 @@ export default function DriverOrdersPage() {
                                                                 SKU: {sku} Количество: {it.quantity} Цена:{" "}
                                                                 {money(pv?.price)} BYN
                                                             </div>
+                                                            <div
+                                                                className={
+                                                                    it.is_from_shop_stock
+                                                                        ? s.badgeStock
+                                                                        : s.badgeCustom
+                                                                }
+                                                            >
+                                                                {it.is_from_shop_stock
+                                                                    ? "Со склада"
+                                                                    : "Под заказ"}
+                                                            </div>
                                                         </div>
                                                     );
                                                 })}
@@ -502,6 +567,13 @@ export default function DriverOrdersPage() {
                 {/* Пагинация */}
                 {totalOrders > 0 && (
                     <div className={s.paginationRow}>
+                        <div className={s.pageInfo}>
+                            Показаны{" "}
+                            <b>
+                                {startIndex + 1}-{endIndex}
+                            </b>{" "}
+                            из <b>{totalOrders}</b> заказов
+                        </div>
                         <div className={s.pageControls}>
                             <span className={s.pageSizeLabel}>На странице:</span>
                             <select
@@ -560,7 +632,11 @@ export default function DriverOrdersPage() {
                         <div className={s.modalBody}>
                             <div className={s.modalInfo}>
                                 <p><strong>Клиент:</strong> {selectedOrder.customer_name || "—"} ({selectedOrder.customer_phone || "—"})</p>
-                                <p><strong>Адрес:</strong> {formatAddress(selectedOrder.address)}</p>
+                                <p><strong>Адрес:</strong> {formatAddress(selectedOrder)}</p>
+                                {selectedOrder.delivery_type === "pickup" && selectedOrder.shop && (
+                                    <p><strong>Магазин:</strong> {selectedOrder.shop.name || `#${selectedOrder.shop.id}`} ({selectedOrder.shop.city}, {selectedOrder.shop.street})</p>
+                                )}
+                                <p><strong>Тип доставки:</strong> {formatDeliveryType(selectedOrder.delivery_type)}</p>
                                 <p><strong>Сумма:</strong> {money(selectedOrder.total_amount)} BYN</p>
                             </div>
 
@@ -573,14 +649,18 @@ export default function DriverOrdersPage() {
                                     className={s.textarea}
                                     value={routeHint}
                                     onChange={(e) => setRouteHint(e.target.value)}
-                                    placeholder="Например: заезд со двора, дом с синими воротами"
+                                    placeholder={
+                                        selectedOrder.delivery_type === "pickup" 
+                                            ? "Например: Минск-Брест-Гомель" 
+                                            : "Например: Минск-Брест-Гомель"
+                                    }
                                     rows={2}
                                 />
                             </div>
 
                             <div className={s.formGroup}>
                                 <label htmlFor="comment" className={s.formLabel}>
-                                    Комментарий для курьера (необязательно)
+                                    Комментарии водителя (необязательно)
                                 </label>
                                 <textarea
                                     id="comment"
