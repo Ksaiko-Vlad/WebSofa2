@@ -192,15 +192,15 @@
 
 .primaryBtn,
 .primaryBtnFull {
-  background: rgba(59, 130, 246, 0.15);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  color: #1d4ed8;
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  color: var(--primary-contrast);
 }
 
 .primaryBtn:hover:not(:disabled),
 .primaryBtnFull:hover:not(:disabled) {
   transform: translateY(-1px);
-  background: rgba(59, 130, 246, 0.25);
+ 
 }
 
 .primaryBtn:disabled,
@@ -597,7 +597,7 @@
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 870px) {
   .wrapper {
     padding: 16px;
   }

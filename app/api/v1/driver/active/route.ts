@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyJwt } from "@/lib/jwt";
 import { prisma } from "@/lib/prisma";
+import { jsonSafe } from "@/lib/bigint"; 
 
 function getToken(req: NextRequest) {
   const auth = req.headers.get("authorization") || "";
@@ -30,22 +31,38 @@ export async function GET(req: NextRequest) {
 
     // Получаем все активные заказы водителя
     const shipments = await prisma.shipments.findMany({
-        where: { driver_id: BigInt(payload.sub), status: { in: ["in_transit"] } },
-        include: {
-          orders: {
-            include: {
-              order: { // Загрузка данных из таблицы orders через связку shipment_orders
-                include: {
-                  address: true, // Загружаем адрес доставки из связи
+      where: { 
+        driver_id: BigInt(payload.sub), 
+        status: { in: ["in_transit"] } 
+      },
+      include: {
+        orders: {
+          include: {
+            order: {
+              include: {
+                address: true,
+                items: {
+                  include: {
+                    productVariant: {
+                      include: {
+                        product: { select: { name: true } },
+                        material: { select: { name: true } },
+                      },
+                    },
+                  },
                 },
               },
             },
           },
         },
-        orderBy: { planned_at: "asc" },
-      });
-      
-    return NextResponse.json({ shipments }, { status: 200 });
+      },
+      orderBy: { planned_at: "asc" },
+    });
+
+    // Преобразуем BigInt в строки с помощью вашей функции
+    const safeShipments = jsonSafe(shipments);
+    
+    return NextResponse.json({ shipments: safeShipments }, { status: 200 });
   } catch (e) {
     console.error("Error fetching active shipments:", e);
     return NextResponse.json({ message: "Ошибка при получении активных заказов" }, { status: 500 });
@@ -79,61 +96,100 @@ export async function POST(req: NextRequest) {
     }
 
     const shipment = await prisma.shipments.findUnique({
-        where: { id: BigInt(shipmentId) },
-        include: {
-          orders: {
-            select: {
-              order: { 
-                select: {
-                  id: true,
-                  status: true, 
-                },
+      where: { id: BigInt(shipmentId) },
+      include: {
+        orders: {
+          include: {
+            order: {
+              select: {
+                id: true,
+                status: true,
               },
             },
           },
         },
-      });
+      },
+    });
 
     if (!shipment) {
       return NextResponse.json({ message: "Доставка не найдена" }, { status: 404 });
     }
 
-    const data: any = {};
-
-    if (action === "deliver") {
-      if (shipment.status !== "in_transit") {
-        return NextResponse.json({ message: "Этот заказ не в пути" }, { status: 400 });
-      }
-      data.status = "delivered";
-      await prisma.orders.update({
-        where: { id: shipment.orders[0].order.id },
-        data: {
-          status: "delivered",
-        },
-      });
-    } else if (action === "cancel") {
-      if (shipment.status !== "in_transit") {
-        return NextResponse.json({ message: "Этот заказ не в пути" }, { status: 400 });
-      }
-      data.status = "cancelled";
-      await prisma.orders.update({
-        where: { id: shipment.orders[0].order.id },
-        data: {
-          status: "cancelled",
-        },
-      });
-    } else {
-      return NextResponse.json({ message: "Неизвестное действие" }, { status: 400 });
+    // Проверяем, что водитель имеет доступ к этой доставке
+    if (shipment.driver_id !== BigInt(payload.sub)) {
+      return NextResponse.json({ message: "Доступ запрещён" }, { status: 403 });
     }
 
-    await prisma.shipments.update({
-      where: { id: BigInt(shipmentId) },
-      data,
+    // Используем транзакцию для атомарного обновления
+    await prisma.$transaction(async (tx) => {
+      const data: any = {};
+
+      if (action === "deliver") {
+        if (shipment.status !== "in_transit") {
+          throw new Error("Этот заказ не в пути");
+        }
+        data.status = "delivered";
+        data.finished_at = new Date();
+
+        // Обновляем все связанные заказы
+        for (const shipmentOrder of shipment.orders) {
+          await tx.orders.update({
+            where: { id: shipmentOrder.order.id },
+            data: {
+              status: "delivered",
+            },
+          });
+        }
+      } else if (action === "cancel") {
+        if (shipment.status !== "in_transit") {
+          throw new Error("Этот заказ не в пути");
+        }
+        data.status = "cancelled";
+        data.finished_at = new Date();
+
+        // Обновляем все связанные заказы
+        for (const shipmentOrder of shipment.orders) {
+          await tx.orders.update({
+            where: { id: shipmentOrder.order.id },
+            data: {
+              status: "cancelled",
+            },
+          });
+        }
+      } else {
+        throw new Error("Неизвестное действие");
+      }
+
+      // Обновляем shipment
+      await tx.shipments.update({
+        where: { id: BigInt(shipmentId) },
+        data,
+      });
     });
 
-    return NextResponse.json({ message: `Статус изменён на ${data.status}` }, { status: 200 });
+    let message = "";
+    if (action === "deliver") {
+      message = "Заказ доставлен";
+    } else if (action === "cancel") {
+      message = "Доставка отменена";
+    }
+
+    return NextResponse.json({ 
+      message,
+      success: true 
+    }, { status: 200 });
+    
   } catch (e) {
     console.error("Error changing shipment status:", e);
-    return NextResponse.json({ message: "Ошибка при изменении статуса доставки" }, { status: 500 });
+    
+    let errorMessage = "Ошибка при изменении статуса доставки";
+    if (e instanceof Error) {
+      errorMessage = e.message;
+    }
+    
+    return NextResponse.json({ 
+      message: errorMessage,
+      error: e instanceof Error ? e.message : "Unknown error"
+    }, { status: 500 });
   }
 }
