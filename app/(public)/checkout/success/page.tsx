@@ -11,7 +11,7 @@ export default function SuccessPage() {
   return (
     <section className={s.wrapper}>
       <div className={s.card} role="status" aria-live="polite">
-        <div className={s.icon} aria-hidden>✅</div>
+        <div className={s.icon} aria-hidden></div>
 
         <h2 className={s.title}>Оплата успешно завершена</h2>
         <p className={s.subtitle}>

@@ -58,7 +58,6 @@ export async function POST(req: Request) {
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
-    // вытащим userId из auth cookie (если пользователь залогинен)
     let userIdStr = ''
     const token = (await cookies()).get('auth_token')?.value
     if (token) {
@@ -74,7 +73,6 @@ export async function POST(req: Request) {
       mode: 'payment',
       payment_method_types: ['card'],
 
-      // ✅ лучше так: это прям отдельное поле под “связку” (строка)
       client_reference_id: userIdStr || undefined,
 
       line_items: items.map((i) => ({
@@ -93,7 +91,6 @@ export async function POST(req: Request) {
       cancel_url: `${appUrl}/cart`,
 
       metadata: {
-        // ✅ дублируем на всякий случай (иногда удобнее читать metadata)
         user_id: userIdStr,
 
         name: customer.name,

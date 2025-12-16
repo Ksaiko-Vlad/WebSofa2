@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import s from './CatalogPage.module.css'
 import type { ProductModalProps } from '@/types/product'
+import { useToast } from '@/hooks/useToast'
 
 export default function ProductModal({
   product,
@@ -14,6 +15,7 @@ export default function ProductModal({
   onClose,
 }: ProductModalProps) {
   const variants = product.variants ?? []
+  const toast = useToast()
 
   const imageSrc =
     product.image_path && product.image_path.length > 0
@@ -21,6 +23,19 @@ export default function ProductModal({
         ? product.image_path
         : `/uploads/products/${product.image_path}`
       : null
+
+      const handleAddToCart = () => {
+        // Вызываем оригинальную функцию добавления
+        onAddToCart()
+
+        toast.show({
+          title: 'Товар добавлен в корзину',
+          description: `${product.name}${selectedVariant ? ` (${selectedVariant.material.name})` : ''}`,
+          duration: 3000,
+        })
+
+        onClose()
+      }
 
   return (
     <AnimatePresence>
@@ -77,7 +92,8 @@ export default function ProductModal({
             </div>
           )}
 
-          <button className={s.btnLarge} onClick={onAddToCart}>
+          <button className={s.btnLarge}  onClick={handleAddToCart}
+            disabled={!selectedVariant}>
             Добавить в корзину
           </button>
         </motion.div>

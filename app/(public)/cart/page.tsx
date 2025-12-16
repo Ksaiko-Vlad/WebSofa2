@@ -20,7 +20,7 @@ type CheckoutFormState = {
   phone: string
   email: string
   deliveryType: DeliveryType
-  shopId: string // как строка из <select>
+  shopId: string 
   city: string
   street: string
   house: string
@@ -56,7 +56,6 @@ export default function CartPage() {
   const [shops, setShops] = useState<Shop[]>([])
   const [form, setForm] = useState<CheckoutFormState>(initialForm)
 
-  // грузим магазины для самовывоза (хуки — всегда выше любых return!)
   useEffect(() => {
     async function loadShops() {
       try {
@@ -128,7 +127,7 @@ export default function CartPage() {
                 : null,
           },
           note: form.note || null,
-          items, // из CartProvider
+          items, 
         }),
       })
 
@@ -167,10 +166,6 @@ export default function CartPage() {
               <div className={s.material}>{item.materialName}</div>
             </div>
 
-            <div className={s.priceCell}>
-              {item.price.toLocaleString('ru-RU')} BYN
-            </div>
-
             <div className={s.qtyCell}>
               <input
                 type="number"
@@ -179,19 +174,22 @@ export default function CartPage() {
                 onChange={e =>
                   setQuantity(item.sku, Number(e.target.value) || 1)
                 }
+                className={s.qtyInput}
               />
             </div>
 
-            <div className={s.totalCell}>
-              {(item.price * item.quantity).toLocaleString('ru-RU')} BYN
-            </div>
+            <div className={s.rightSection}>
+              <div className={s.totalCell}>
+                {(item.price * item.quantity).toLocaleString('ru-RU')} BYN
+              </div>
 
-            <button
-              className={s.removeBtn}
-              onClick={() => removeItem(item.sku)}
-            >
-              ✕
-            </button>
+              <button
+                className={s.removeBtn}
+                onClick={() => removeItem(item.sku)}
+              >
+                ✕
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -228,18 +226,21 @@ export default function CartPage() {
               value={form.name}
               onChange={handleChange}
               required
+              className={s.formInput}
             />
             <input
               name="second_name"
               placeholder="Отчество"
               value={form.second_name}
               onChange={handleChange}
+              className={s.formInput}
             />
             <input
               name="last_name"
               placeholder="Фамилия"
               value={form.last_name}
               onChange={handleChange}
+              className={s.formInput}
             />
 
             <input
@@ -248,6 +249,7 @@ export default function CartPage() {
               value={form.phone}
               onChange={handleChange}
               required
+              className={s.formInput}
             />
           </div>
 
@@ -258,6 +260,7 @@ export default function CartPage() {
             value={form.email}
             onChange={handleChange}
             required
+            className={s.formInput}
           />
 
           <h3 className={s.subtitle}>Доставка</h3>
@@ -269,6 +272,7 @@ export default function CartPage() {
                 name="deliveryType"
                 value={form.deliveryType}
                 onChange={handleChange}
+                className={s.formSelect}
               >
                 <option value="pickup">Самовывоз</option>
                 <option value="home_delivery">Доставка</option>
@@ -286,6 +290,7 @@ export default function CartPage() {
                   value={form.shopId}
                   onChange={handleChange}
                   required
+                  className={s.formSelect}
                 >
                   <option value="">Выберите магазин</option>
                   {shops.map(shop => (
@@ -308,6 +313,7 @@ export default function CartPage() {
                   value={form.city}
                   onChange={handleChange}
                   required
+                  className={s.formInput}
                 />
                 <input
                   name="street"
@@ -315,6 +321,7 @@ export default function CartPage() {
                   value={form.street}
                   onChange={handleChange}
                   required
+                  className={s.formInput}
                 />
               </div>
 
@@ -325,12 +332,14 @@ export default function CartPage() {
                   value={form.house}
                   onChange={handleChange}
                   required
+                  className={s.formInput}
                 />
                 <input
                   name="apartment"
                   placeholder="Квартира"
                   value={form.apartment}
                   onChange={handleChange}
+                  className={s.formInput}
                 />
               </div>
 
@@ -340,12 +349,14 @@ export default function CartPage() {
                   placeholder="Подъезд"
                   value={form.entrance}
                   onChange={handleChange}
+                  className={s.formInput}
                 />
                 <input
                   name="floor"
                   placeholder="Этаж"
                   value={form.floor}
                   onChange={handleChange}
+                  className={s.formInput}
                 />
               </div>
             </>
@@ -357,6 +368,7 @@ export default function CartPage() {
             value={form.note}
             onChange={handleChange}
             rows={3}
+            className={s.formTextarea}
           />
 
           {error && <p className={s.error}>{error}</p>}
@@ -364,10 +376,10 @@ export default function CartPage() {
           <div className={s.checkoutFooter}>
             <div>
               <span>Итого к оплате: </span>
-              <strong>{totalPrice.toLocaleString('ru-RU')} BYN</strong>
+              <strong className={s.result}>{totalPrice.toLocaleString('ru-RU')} BYN</strong>
             </div>
 
-            <button type="submit" className={s.primary} disabled={loading}>
+            <button type="submit" className={s.primary} disabled={loading} style={{marginLeft: 16}}>
               {loading ? 'Переходим к оплате…' : 'Перейти к оплате'}
             </button>
           </div>
