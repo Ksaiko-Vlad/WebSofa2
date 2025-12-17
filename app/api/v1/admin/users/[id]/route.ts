@@ -16,7 +16,15 @@ const patchUserSchema = z.object({
   first_name: z.string().trim().optional().nullable(),
   second_name: z.string().trim().optional().nullable(),
   last_name: z.string().trim().optional().nullable(),
-  phone: z.string().trim().optional().nullable(),
+  phone: z.string().trim()
+    .optional()
+    .nullable()
+    .refine(
+      (val) => !val || val === '' || /^\+375(29|33|44|25|17|16|21|22|23|24|15|99)\d{7}$/.test(val),
+      {
+        message: 'Номер телефона должен быть в формате +375XXXXXXXXX'
+      }
+    ),
 })
 
 export async function PATCH(
@@ -40,6 +48,46 @@ export async function PATCH(
     }
 
     const d = parsed.data
+
+    // Дополнительная проверка на минимальную длину номера
+    if (d.phone && d.phone.trim() !== '') {
+      const phone = d.phone.trim()
+      
+      // Проверка что номер начинается с +375
+      if (!phone.startsWith('+375')) {
+        return NextResponse.json(
+          { message: 'Номер телефона должен начинаться с +375' },
+          { status: 400 }
+        )
+      }
+      
+      // Проверка общей длины (13 символов: +375 + 9 цифр)
+      if (phone.length !== 13) {
+        return NextResponse.json(
+          { message: 'Номер телефона должен содержать ровно 13 символов (+375XXXXXXXXX)' },
+          { status: 400 }
+        )
+      }
+      
+      // Проверка что после +375 только цифры
+      const digitsOnly = phone.substring(4)
+      if (!/^\d{9}$/.test(digitsOnly)) {
+        return NextResponse.json(
+          { message: 'После +375 должны быть только цифры' },
+          { status: 400 }
+        )
+      }
+      
+      // Проверка кода оператора (первые 2 цифры после +375)
+      const operatorCode = phone.substring(4, 6)
+      const validOperators = ['29', '33', '44', '25', '17', '16', '21', '22', '23', '24', '15', '99']
+      if (!validOperators.includes(operatorCode)) {
+        return NextResponse.json(
+          { message: 'Неверный код оператора. Допустимые: ' + validOperators.join(', ') },
+          { status: 400 }
+        )
+      }
+    }
 
     const updateData: any = {
       ...(d.email !== undefined ? { email: d.email } : {}),

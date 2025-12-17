@@ -55,7 +55,7 @@ export default function AdminUserCreatePage() {
         last_name: form.last_name.trim() ? form.last_name.trim() : null,
         role: form.role,
         active: form.active,
-        password: form.password.trim(), // для админ-создания лучше требовать
+        password: form.password.trim(), 
       }
 
       const res = await fetch('/api/v1/admin/users', {
@@ -170,13 +170,15 @@ export default function AdminUserCreatePage() {
             </div>
 
             <div className={s.fieldInline} style={{ gridColumn: '1 / -1' }}>
+            <label className={s.checkbox}>
               <input
                 id="active"
                 type="checkbox"
                 checked={form.active}
                 onChange={(e) => set('active', e.target.checked)}
               />
-              <label htmlFor="active">Активен</label>
+              </label>
+              <label className={s.label} htmlFor="active">Активен</label>
             </div>
           </div>
 

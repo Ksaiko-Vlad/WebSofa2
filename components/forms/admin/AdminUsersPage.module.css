@@ -3,7 +3,6 @@
   --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
   --shadow-strong: 0 30px 90px rgba(15, 23, 42, 0.22);
   --danger: #ef4444;
-
   min-height: 100%;
   padding: 28px;
   background: var(--background);
@@ -21,7 +20,7 @@
 }
 
 .card {
-  background: var(--card);
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 18px;
   box-shadow: var(--shadow);
@@ -58,30 +57,33 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 980px;
+  background: var(--bg);
+  color: var(--fg);
 }
 
 .table thead th {
   position: sticky;
   top: 0;
-  background: color-mix(in srgb, var(--card) 92%, var(--background));
+  background: color-mix(in srgb, var(--bg) 92%, var(--background));
   backdrop-filter: blur(8px);
+  padding: 10px 14px;
   text-align: center;
-  padding: 12px 12px;
+  font-weight: 700;
   font-size: 12px;
   color: var(--muted);
   border-bottom: 1px solid var(--border);
 }
 
 .table tbody td {
-  padding: 12px 12px;
+  padding: 10px 14px;
+  text-align: left;
   border-bottom: 1px solid var(--border);
-  vertical-align: middle;
+  vertical-align: top;
   font-size: 14px;
 }
 
 .table tbody tr:hover td {
-  background: color-mix(in srgb, var(--card) 86%, var(--background));
+  background: color-mix(in srgb, var(--bg) 86%, var(--border));
 }
 
 .placeholder {
@@ -130,18 +132,21 @@
 .secondaryBtn,
 .editBtn,
 .iconBtn {
-  border-radius: 12px;
+  background: transparent;
   border: 1px solid var(--border);
+  color: var(--fg);
   padding: 10px 12px;
+  border-radius: 12px;
   font-weight: 800;
   font-size: 14px;
   cursor: pointer;
-  transition: transform .12s ease, background .12s ease, border-color .12s ease;
+  transition: transform 0.12s ease, background 0.12s ease,
+    border-color 0.12s ease;
 }
 
 .primaryBtn {
   background: var(--primary);
-  color: var(--primary-contrast);
+  color: var(--bg);
   border-color: color-mix(in srgb, var(--border) 70%, transparent);
   text-decoration: none;
   display: inline-flex;
@@ -150,7 +155,8 @@
 }
 .primaryBtn:hover {
   transform: translateY(-1px);
-  background: color-mix(in srgb, var(--primary) 88%, var(--background));
+  background: color-mix(in srgb, var(--bg) 90%, var(--border));
+  color: var(--primary);
 }
 
 .secondaryBtn {
@@ -159,7 +165,7 @@
 }
 .secondaryBtn:hover {
   transform: translateY(-1px);
-  background: color-mix(in srgb, var(--card) 88%, var(--background));
+  background: color-mix(in srgb, var(--bg) 90%, var(--border));
 }
 
 .editBtn {
@@ -168,7 +174,8 @@
   padding: 8px 10px;
 }
 .editBtn:hover {
-  background: color-mix(in srgb, var(--card) 86%, var(--background));
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--bg) 90%, var(--border));
 }
 
 .iconBtn {
@@ -193,7 +200,7 @@
   justify-content: center;
   padding: 22px;
 
-  --modal-card: #ffffff;
+  --modal-card: var(--bg);
   --modal-shadow: 0 30px 90px rgba(15, 23, 42, 0.22);
 }
 
@@ -204,7 +211,7 @@
 
 .modalCard {
   width: min(860px, 96vw);
-  background: var(--modal-card);
+  background: var(--bg);
   color: var(--fg);
   border: 1px solid var(--border);
   border-radius: 18px;
@@ -260,16 +267,51 @@
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 10px 12px;
-  background: color-mix(in srgb, var(--card) 92%, var(--background));
+  background: color-mix(in srgb, var(--bg) 92%, var(--border));
   color: var(--fg);
   outline: none;
 }
 
 .field input:focus,
 .field select:focus {
-  border-color: color-mix(in srgb, var(--border) 30%, #60a5fa);
+  border-color: color-mix(in srgb, var(--border) 30%, var(--primary));
   box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.20);
 }
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 0;
+  cursor: pointer;
+}
+
+.checkbox input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.checkbox input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 10px;
+  border: solid var(--primary); 
+  border-width: 0 2px 2px 0;
+  transform: translate(-50%, -60%) rotate(45deg);
+}
+
 
 .fieldInline {
   display: flex;
@@ -294,13 +336,178 @@
   margin-top: 12px;
 }
 
-@media (max-width: 900px) {
-  .table { min-width: 820px; }
-  .formGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* Мобильные карточки */
+.mobileList {
+  display: none;
+  margin-top: 16px;
+  gap: 12px;
 }
 
-@media (max-width: 560px) {
-  .wrapper { padding: 16px; }
-  .formGrid { grid-template-columns: 1fr; }
-  .headerRow { flex-direction: column; align-items: flex-start; }
+.userCard {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  background: color-mix(in srgb, var(--bg) 96%, var(--background));
+}
+
+.userHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.userName {
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.userId {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.userStatus {
+  flex-shrink: 0;
+}
+
+.userDetails {
+  margin-bottom: 16px;
+}
+
+.detailRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.detailLabel {
+  font-weight: 600;
+  color: var(--muted);
+  min-width: 80px;
+  margin-right: 12px;
+}
+
+.detailValue {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Адаптивность */
+@media (max-width: 1024px) {
+  .table {
+    table-layout: auto;
+  }
+  
+  .table thead th,
+  .table tbody td {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+  
+  .badgeActive,
+  .badgeInactive {
+    font-size: 11px;
+    min-width: 70px;
+    padding: 5px 8px;
+  }
+  
+  .editBtn {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .wrapper {
+    padding: 16px;
+  }
+  
+  .tableWrapper {
+    display: none;
+  }
+  
+  .mobileList {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .formGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .wrapper {
+    padding: 12px;
+  }
+  
+  .card {
+    padding: 14px;
+  }
+  
+  .headerRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .title {
+    font-size: 20px;
+  }
+  
+  .userCard {
+    padding: 12px;
+  }
+  
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .modalCard {
+    width: 95vw;
+    padding: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .wrapper {
+    padding: 10px;
+  }
+  
+  .card {
+    padding: 12px;
+  }
+  
+  .title {
+    font-size: 18px;
+  }
+  
+  .userName {
+    font-size: 15px;
+  }
+  
+  .detailRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  
+  .detailLabel {
+    min-width: auto;
+    margin-right: 0;
+  }
+  
+  .editBtn {
+    width: 100%;
+    text-align: center;
+  }
 }

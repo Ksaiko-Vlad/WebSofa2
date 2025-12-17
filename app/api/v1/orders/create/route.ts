@@ -20,7 +20,7 @@ const checkoutSchema = z.object({
     name: z.string().trim().min(1),
     second_name: z.string().trim().optional(),
     last_name: z.string().trim().optional(),
-    phone: z.string().trim().min(5),
+    phone: z.string().trim().min(11),
     email: z.string().email(),
   }),
   delivery: z.object({

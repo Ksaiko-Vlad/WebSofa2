@@ -70,7 +70,7 @@ export type AdminOrdersResponse = {
 export const STATUS_LABEL: Record<OrderStatus, string> = {
   created: 'Создан',
   in_production: 'В производстве',
-  ready_to_ship: 'Готов к отгрузке',
+  ready_to_ship: 'Подготовлен',
   in_transit: 'В пути',
   delivered: 'Доставлен',
   cancelled: 'Отменён',

@@ -39,11 +39,9 @@ export default function UserOrders() {
   const [orders, setOrders] = useState<PatchedOrder[]>([])
   const [loading, setLoading] = useState(true)
 
-  // pagination
-  const [page, setPage] = useState(1) // 1-based
+  const [page, setPage] = useState(1) 
   const pageSize = 1
 
-  // open items
   const [open, setOpen] = useState(false)
 
   const { show } = useToast()
@@ -157,13 +155,10 @@ export default function UserOrders() {
 
               <div className={s.orderMeta}>
                 <span className={s.muted}>Дата:</span> {formatDate(current.created_at)}
-                <span className={s.dot}>•</span>
-                <span className={s.muted}>Сумма:</span>{' '}
-                <span className={s.money}>{formatMoney(Number(current.total) || 0)}</span>
+                <span className={s.money}>Сумма: {formatMoney(Number(current.total) || 0)}</span>
               </div>
             </div>
 
-            {/* ВАЖНО: тут класс s.actions (а не orderActions) */}
             <div className={s.actions}>
               <button type="button" className={s.secondaryBtn} onClick={() => setOpen((v) => !v)}>
                 {open ? 'Скрыть состав' : 'Состав'}

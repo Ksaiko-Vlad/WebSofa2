@@ -18,9 +18,17 @@ export async function GET() {
 }
 
 const createSchema = z.object({
-  name: z.string().trim().min(1),
-  color: z.string().trim().min(1),
-  price_per_mm3: z.union([z.string(), z.number()]), 
+  name: z.string().trim().min(1, 'Название обязательно'),
+  color: z.string().trim().min(1, 'Цвет обязателен'),
+  price_per_mm3: z.union([z.string(), z.number()])
+    .transform(val => {
+      // Преобразуем в число
+      const num = typeof val === 'string' ? parseFloat(val) : val
+      // Округляем до 4 знаков после запятой
+      return Math.round(num * 10000) / 10000
+    })
+    .refine(val => val >= 0, 'Цена не может быть отрицательной')
+    .refine(val => val <= 0.0099, 'Максимальная цена за мм³: 0.0099'),
   active: z.boolean().optional(),
 })
 
@@ -29,10 +37,35 @@ export async function POST(req: Request) {
     const body = await req.json()
     const parsed = createSchema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json({ message: 'Неверные данные', issues: parsed.error.issues }, { status: 400 })
+      return NextResponse.json(
+        { message: parsed.error.issues[0]?.message ?? 'Неверные данные' },
+        { status: 400 }
+      )
     }
 
     const data = parsed.data
+
+    // Проверка на существующий материал
+    const existingMaterial = await prisma.materials.findFirst({
+      where: {
+        name: data.name
+      }
+    })
+
+    if (existingMaterial) {
+      return NextResponse.json(
+        { message: 'Материал с таким названием уже существует' },
+        { status: 409 }
+      )
+    }
+
+    // Дополнительная проверка цены (на всякий случай)
+    if (data.price_per_mm3 > 0.0099) {
+      return NextResponse.json(
+        { message: 'Максимальная цена за мм³: 0.0099' },
+        { status: 400 }
+      )
+    }
 
     const material = await prisma.materials.create({
       data: {
@@ -47,6 +80,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ material: jsonSafe(material) }, { status: 201 })
   } catch (err: any) {
     console.error('material create error', err)
+    
+    if (err?.code === 'P2002') {
+      return NextResponse.json(
+        { message: 'Материал с таким названием уже существует' },
+        { status: 409 }
+      )
+    }
+    
     return NextResponse.json({ message: 'Ошибка при создании материала' }, { status: 500 })
   }
 }

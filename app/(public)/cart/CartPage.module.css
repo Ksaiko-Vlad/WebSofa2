@@ -116,12 +116,12 @@
 }
 
 .removeBtn:hover {
-  color: white;
+  color: var(--primary);
   transform: scale(1.1);
 }
 
 .removeBtn:hover {
-  color: #000000;
+  color: var(--primary);
 }
 
 .summary {

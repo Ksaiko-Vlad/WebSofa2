@@ -18,6 +18,18 @@ type EditDraft = {
   password: string // если заполнено — reset
 }
 
+// Функция для перевода ролей на русский
+const translateRole = (role: string): string => {
+  const translations: Record<string, string> = {
+    'customer': 'Покупатель',
+    'manager': 'Менеджер',
+    'driver': 'Водитель',
+    'factory_worker': 'Рабочий',
+    'admin': 'Администратор'
+  }
+  return translations[role] || role
+}
+
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserInfoForAdmin[]>([])
   const [loading, setLoading] = useState(true)
@@ -30,7 +42,13 @@ export default function AdminUsersPage() {
   const { show } = useToast()
 
   const roleOptions = useMemo(
-    () => ['customer', 'manager', 'driver', 'factory_worker', 'admin'] as const,
+    () => [
+      { value: 'customer', label: 'Пользователь' },
+      { value: 'manager', label: 'Менеджер' },
+      { value: 'driver', label: 'Водитель' },
+      { value: 'factory_worker', label: 'Рабочий' },
+      { value: 'admin', label: 'Администратор' }
+    ] as const,
     []
   )
 
@@ -58,7 +76,6 @@ export default function AdminUsersPage() {
     const ac = new AbortController()
     loadUsers(ac.signal)
     return () => ac.abort()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function openEdit(u: UserInfoForAdmin) {
@@ -89,7 +106,6 @@ export default function AdminUsersPage() {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editing, saving])
 
   async function saveEdit() {
@@ -118,7 +134,6 @@ export default function AdminUsersPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data?.message || 'Не удалось обновить пользователя')
 
-      // ожидаем, что backend вернёт { user }
       const updated: UserInfoForAdmin = data.user ?? data
       setUsers((prev) => prev.map((x) => (x.id === updated.id ? updated : x)))
 
@@ -207,20 +222,22 @@ export default function AdminUsersPage() {
                 }
               >
                 {roleOptions.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
+                  <option key={r.value} value={r.value}>
+                    {r.label}
                   </option>
                 ))}
               </select>
             </div>
 
             <div className={s.fieldInline}>
+              <label className={s.checkbox}>
               <input
                 type="checkbox"
                 checked={draft.active}
                 onChange={(e) => setDraft({ ...draft, active: e.target.checked })}
                 id="u_active"
               />
+              </label>
               <label htmlFor="u_active">Активен</label>
             </div>
 
@@ -232,7 +249,7 @@ export default function AdminUsersPage() {
                 onChange={(e) => setDraft({ ...draft, password: e.target.value })}
                 placeholder="Новый пароль (если нужно)"
               />
-              <div className={s.hint}>Если поле пустое — пароль не меняем.</div>
+              <div className={s.hint}>Если поле пустое - пароль не меняем.</div>
             </div>
           </div>
 
@@ -263,57 +280,118 @@ export default function AdminUsersPage() {
             <p>Пользователей пока нет</p>
           </div>
         ) : (
-          <div className={s.tableWrapper}>
-            <table className={s.table}>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Имя</th>
-                  <th>Email</th>
-                  <th>Телефон</th>
-                  <th>Роль</th>
-                  <th>Статус</th>
-                  <th>Создан</th>
-                  <th>Действие </th>
-                </tr>
-              </thead>
+          <>
+            {/* Десктопная таблица */}
+            <div className={s.tableWrapper}>
+              <table className={s.table}>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Имя</th>
+                    <th>Email</th>
+                    <th>Телефон</th>
+                    <th>Роль</th>
+                    <th>Статус</th>
+                    <th>Создан</th>
+                    <th>Действие</th>
+                  </tr>
+                </thead>
 
-              <tbody>
-                {users.map((u) => (
-                  <tr key={u.id}>
-                    <td>{u.id}</td>
-                    <td>
-                      {u.first_name || u.last_name
-                        ? `${u.first_name ?? ''} ${u.last_name ?? ''}`.trim()
-                        : '—'}
-                    </td>
-                    <td>{u.email}</td>
-                    <td>{u.phone ?? '—'}</td>
-                    <td>
-                      <span className={s.roleBadge}>{u.role}</span>
-                    </td>
-                    <td>
+                <tbody>
+                  {users.map((u) => (
+                    <tr key={u.id}>
+                      <td>{u.id}</td>
+                      <td className={s.nameCell}>
+                        <div className={s.nameMain}>
+                          {u.first_name || u.last_name
+                            ? `${u.first_name ?? ''} ${u.last_name ?? ''}`.trim()
+                            : '—'}
+                        </div>
+                        
+                      </td>
+                      <td>{u.email}</td>
+                      <td>{u.phone ?? '—'}</td>
+                      <td>
+                        <span className={s.roleBadge} data-role={u.role}>
+                          {translateRole(u.role)}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={u.active ? s.badgeActive : s.badgeInactive}>
+                          {u.active ? 'Активен' : 'Выключен'}
+                        </span>
+                      </td>
+                      <td>
+                        {new Date(u.created_at).toLocaleDateString('ru-RU', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                        })}
+                      </td>
+                      <td className={s.actionsCell}>
+                        <button className={s.editBtn} onClick={() => openEdit(u)}>
+                          Редактировать
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Мобильные карточки */}
+            <div className={s.mobileList}>
+              {users.map((u) => (
+                <div key={u.id} className={s.userCard}>
+                  <div className={s.userHeader}>
+                    <div>
+                      <div className={s.userName}>
+                        {u.first_name || u.last_name
+                          ? `${u.first_name ?? ''} ${u.last_name ?? ''}`.trim()
+                          : 'Без имени'}
+                      </div>
+                      <div className={s.userId}>ID: {u.id}</div>
+                    </div>
+                    <div className={s.userStatus}>
                       <span className={u.active ? s.badgeActive : s.badgeInactive}>
                         {u.active ? 'Активен' : 'Выключен'}
                       </span>
-                    </td>
-                    <td>
-                      {new Date(u.created_at).toLocaleDateString('ru-RU', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                      })}
-                    </td>
-                    <td className={s.actionsCell}>
-                      <button className={s.editBtn} onClick={() => openEdit(u)}>
-                        Редактировать
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </div>
+                  
+                  <div className={s.userDetails}>
+                    <div className={s.detailRow}>
+                      <span className={s.detailLabel}>Email:</span>
+                      <span className={s.detailValue}>{u.email}</span>
+                    </div>
+                    <div className={s.detailRow}>
+                      <span className={s.detailLabel}>Телефон:</span>
+                      <span className={s.detailValue}>{u.phone || '—'}</span>
+                    </div>
+                    <div className={s.detailRow}>
+                      <span className={s.detailLabel}>Роль:</span>
+                      <span className={`${s.detailValue} ${s.roleBadge}`} data-role={u.role}>
+                        {translateRole(u.role)}
+                      </span>
+                    </div>
+                
+                    <div className={s.detailRow}>
+                      <span className={s.detailLabel}>Создан:</span>
+                      <span className={s.detailValue}>
+                        {new Date(u.created_at).toLocaleDateString('ru-RU')}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className={s.userActions}>
+                    <button className={s.editBtn} onClick={() => openEdit(u)}>
+                      Редактировать
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 

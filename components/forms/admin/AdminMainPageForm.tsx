@@ -1,56 +1,96 @@
 import s from './AdminMainPageForm.module.css'
 
 export default async function AdminMainPage() {
+  const adminCards = [
+    {
+      href: "/admin/products",
+      icon: "📦",
+      title: "Товары",
+      description: "Просмотр и редактирование каталога"
+    },
+    {
+      href: "/admin/products/add",
+      icon: "➕",
+      title: "Добавить товар",
+      description: "Добавление нового товара"
+    },
+    {
+      href: "/admin/users",
+      icon: "👥",
+      title: "Пользователи",
+      description: "Просмотр и редактирование пользователей"
+    },
+    {
+      href: "/admin/users/new",
+      icon: "➕",
+      title: "Добавить пользователя",
+      description: "Добавление нового пользователя"
+    },
+    {
+      href: "/admin/materials",
+      icon: "➕",
+      title: "Добавить материал",
+      description: "Добавление нового материала"
+    },
+    {
+      href: "/admin/factory-orders",
+      icon: "",
+      title: "Производство",
+      description: "Наблюдение за производством"
+    },
+    {
+      href: "/admin/orders",
+      icon: "",
+      title: "Заказы",
+      description: "Просмотр заказов и их подробностей"
+    },
+    {
+      href: "/admin/shipments",
+      icon: "📦",
+      title: "Доставки",
+      description: "Контроль доставок"
+    },
+    {
+      href: "/admin/shops",
+      icon: "",
+      title: "Магазины",
+      description: "Просмотр и добавление магазинов"
+    },
+    {
+      href: "/admin/shop-stock",
+      icon: "",
+      title: "Каталоги магазинов",
+      description: "Просмотр остатков товаров в магазинах"
+    },
+    {
+      href: "/admin/managers",
+      icon: "👔",
+      title: "Менеджеры",
+      description: "Назначение менеджеров в магазины"
+    }
+  ]
+
   return (
-    <section className={s.wrapper}>
-      <h1 className={s.title}>Панель администратора</h1>
+    <section className={s.wrapper} aria-labelledby="admin-title">
+      <h1 id="admin-title" className={s.title}>Панель администратора</h1>
       <p className={s.subtitle}>Выберите раздел для управления:</p>
 
-      <div className={s.grid}>
-        <a href="/admin/products" className={s.card}>
-          <h3>📦 Товары</h3>
-          <p>Просмотр и редактирование каталога</p>
-        </a>
-        <a href="/admin/products/add" className={s.card}>
-          <h3>➕ Добавить товар</h3>
-          <p>Создание нового товара</p>
-        </a>
-        <a href="/admin/users" className={s.card}>
-          <h3>👥 Пользователи</h3>
-          <p>Список и роли пользователей</p>
-        </a>
-        <a href="/admin/users/new" className={s.card}>
-        <h3>➕ Добавить пользователя</h3>
-        <p>Создание нового пользователя</p>
-        </a>
-        <a href="/admin/materials" className={s.card}>
-        <h3>➕ Добавить материал</h3>
-        <p>Добавление нового материала</p>
-        </a>
-        <a href="/admin/factory-orders" className={s.card}>
-          <h3>Производство</h3>
-          <p>Просмотр производства</p>
-        </a>
-        <a href="/admin/orders" className={s.card}>
-          <h3>🚚 Заказы</h3>
-          <p>Контроль заказов и статусов</p>
-        </a>
-        <a href="/admin/shipments" className={s.card}>
-          <h3>🚚 Доставки</h3>
-          <p>Контроль доставок и статусов</p>
-        </a>
-        <a href="/admin/shops" className={s.card}>
-          <h3>Магазины</h3>
-          <p>Просмотр и редактирование магазинов</p>
-        </a>
-        <a href="/admin/shop-stock" className={s.card}>
-          <h3>Каталоги магазинов</h3>
-          <p>Просмотр каталогов магазинов</p>
-        </a>
-        <a href="/admin/managers" className={s.card}>
-          <h3>Менеджеры</h3>
-          <p>Просмотр и назначение администраторов</p>
-        </a>
+      <div className={s.grid} role="grid" aria-label="Разделы админ-панели">
+        {adminCards.map((card, index) => (
+          <a
+            key={index}
+            href={card.href}
+            className={s.card}
+            role="gridcell"
+            aria-label={`${card.title}: ${card.description}`}
+          >
+            <h3>
+              <span aria-hidden="true">{card.icon}</span>
+              {card.title}
+            </h3>
+            <p>{card.description}</p>
+          </a>
+        ))}
       </div>
     </section>
   )

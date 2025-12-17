@@ -34,7 +34,6 @@ export default function EditProductModal({ product, open, onClose, onUpdated }: 
     if (open) console.log('🔍 product:', product)
   }, [open, product])
 
-  // --- закрытие по ESC ---
   useEffect(() => {
     if (!open) return
     const onEsc = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -42,7 +41,6 @@ export default function EditProductModal({ product, open, onClose, onUpdated }: 
     return () => window.removeEventListener('keydown', onEsc)
   }, [open, onClose])
 
-  // --- сброс при открытии ---
   useEffect(() => {
     if (!open) return
     setName(product.name)
@@ -158,7 +156,7 @@ export default function EditProductModal({ product, open, onClose, onUpdated }: 
             <div className={s.switchRow}>
               <div>
                 <div className={s.label}>Статус товара</div>
-                <div style={{ fontWeight: 700 }}>{active ? 'Активен' : 'Выключен'}</div>
+                <div style={{ fontWeight: 700, marginLeft: 2, marginTop: 5 }}>{active ? ' Активен' : ' Выключен'}</div>
               </div>
               <input type="checkbox" className={s.switch} checked={active} onChange={(e) => setActive(e.target.checked)} />
             </div>
@@ -188,7 +186,7 @@ export default function EditProductModal({ product, open, onClose, onUpdated }: 
                         setVariants(prev => prev.map(x => x.id === v.id ? { ...x, active: e.target.checked } : x))
                       }
                     />
-                    <span style={{ fontWeight: 700, minWidth: 120 }}>{v.material.name}</span>
+                    <span style={{ fontWeight: 500, minWidth: 120 }}>{v.material.name}</span>
                     <span style={{ opacity: .8 }}>{Number(v.price).toFixed(2)} BYN</span>
                   </label>
                 ))}

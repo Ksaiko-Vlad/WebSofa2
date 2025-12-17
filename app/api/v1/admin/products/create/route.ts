@@ -7,14 +7,14 @@ import path from 'path'
 
 export async function POST(req: Request) {
   try {
-    // --- получаем данные формы ---
+    // получаем данные формы
     const formData = await req.formData()
     const raw = Object.fromEntries(formData.entries())
 
     const materials = raw.materials ? JSON.parse(raw.materials as string) : []
     const imageFile = formData.get('image') as File | null
 
-    // --- валидируем через Zod ---
+    // валидируем через Zod
     const parsed = createProductSchema.parse({
       ...raw,
       width_mm: Number(raw.width_mm),
@@ -27,7 +27,21 @@ export async function POST(req: Request) {
 
     const { name, description, category, width_mm, height_mm, depth_mm, base_price } = parsed
 
-    // --- сохраняем изображение ---
+    // --- ПРОВЕРКА НА ДУБЛИКАТ НАЗВАНИЯ ---
+    const existingProduct = await prisma.products.findFirst({
+      where: {
+        name: name
+      }
+    })
+
+    if (existingProduct) {
+      return NextResponse.json(
+        { message: 'Товар с таким названием уже существует' },
+        { status: 400 }
+      )
+    }
+
+    // сохраняем изображение 
     let image_path: string | null = null
     if (imageFile) {
       const bytes = Buffer.from(await imageFile.arrayBuffer())
@@ -38,7 +52,7 @@ export async function POST(req: Request) {
       image_path = `/uploads/products/${fileName}`
     }
 
-    // --- создаём сам товар ---
+    // создаём сам товар 
     const product = await prisma.products.create({
       data: {
         name,

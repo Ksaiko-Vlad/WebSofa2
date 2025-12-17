@@ -18,8 +18,67 @@ export async function POST(req: NextRequest) {
         const json = await req.json();
         const data = updateProfileSchema.parse(json);
 
+        const userId = BigInt(payload.sub);
+
+        // Проверка номера телефона
+        if (data.phone && data.phone.trim() !== '') {
+            const phone = data.phone.trim();
+            
+            // Проверка что номер начинается с +375
+            if (!phone.startsWith('+375')) {
+                return NextResponse.json(
+                    { message: 'Номер телефона должен начинаться с +375' },
+                    { status: 400 }
+                );
+            }
+            
+            // Проверка общей длины (13 символов: +375 + 9 цифр)
+            if (phone.length !== 13) {
+                return NextResponse.json(
+                    { message: 'Номер телефона должен содержать ровно 13 символов (+375XXXXXXXXX)' },
+                    { status: 400 }
+                );
+            }
+            
+            // Проверка что после +375 только цифры
+            const digitsOnly = phone.substring(4);
+            if (!/^\d{9}$/.test(digitsOnly)) {
+                return NextResponse.json(
+                    { message: 'После +375 должны быть только цифры' },
+                    { status: 400 }
+                );
+            }
+            
+            // Проверка кода оператора (первые 2 цифры после +375)
+            const operatorCode = phone.substring(4, 6);
+            const validOperators = ['29', '33', '44', '25', '17', '16', '21', '22', '23', '24', '15', '99'];
+            if (!validOperators.includes(operatorCode)) {
+                return NextResponse.json(
+                    { message: 'Неверный код оператора. Допустимые: ' + validOperators.join(', ') },
+                    { status: 400 }
+                );
+            }
+
+            // Проверка на уникальность телефона (исключая текущего пользователя)
+            const existingUserWithPhone = await prisma.users.findFirst({
+                where: {
+                    phone: phone,
+                    id: {
+                        not: userId // исключаем текущего пользователя
+                    }
+                }
+            });
+
+            if (existingUserWithPhone) {
+                return NextResponse.json(
+                    { message: 'Этот номер телефона уже занят другим пользователем' },
+                    { status: 409 }
+                );
+            }
+        }
+
         await prisma.users.update({
-            where: { id: BigInt(payload.sub) },
+            where: { id: userId },
             data,
         });
 
@@ -38,5 +97,4 @@ export async function POST(req: NextRequest) {
         console.error('update user error:', e);
         return NextResponse.json({ message: 'Ошибка обновления' }, { status: 500 });
     }
-
 }

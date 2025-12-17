@@ -4,6 +4,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useToast } from "@/hooks/useToast";
 import s from "./AdminFactoryOrders.module.css";
+import Link from "next/link";
+import React from "react";
 
 type Shop = {
   id: number;
@@ -76,7 +78,7 @@ const formatStatus = (s: string) => {
     case "in_production":
       return "В производстве";
     case "ready_to_ship":
-      return "Готов к отгрузке";
+      return "Подготовлен";
     case "in_transit":
       return "В пути";
     case "delivered":
@@ -144,10 +146,8 @@ export default function AdminFactoryOrdersPage() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // сброс страницы при смене фильтра статуса
   useEffect(() => {
     setPage(1);
   }, [statusFilter]);
@@ -218,11 +218,11 @@ export default function AdminFactoryOrdersPage() {
     <section className={s.wrapper}>
       <div className={s.card}>
         <div className={s.headerRow}>
-          <h1 className={s.title}>Производственные заказы (админ)</h1>
+          <h1 className={s.title}>Производственные заказы</h1>
           <div className={s.headerActions}>
             <span className={s.muted}>
-              Всего: <b>{orders.length}</b> • В производстве:{" "}
-              <b>{statInProd}</b> • Готовы: <b>{statReady}</b> • Доставлены:{" "}
+              Всего: <b>{orders.length}</b>  В производстве:{" "}
+              <b>{statInProd}</b>  Готовы: <b>{statReady}</b>  Доставлены:{" "}
               <b>{statDelivered}</b>
             </span>
           </div>
@@ -245,22 +245,26 @@ export default function AdminFactoryOrdersPage() {
               <option value="delivered">Доставлен</option>
             </select>
           </div>
-          <button
-            type="button"
-            className={s.secondaryBtn}
-            onClick={load}
-            disabled={isRefreshing}
-          >
-            {isRefreshing ? "Обновляем…" : "Обновить"}
-          </button>
+          <div className={s.buttonGroup}>
+            <Link className={s.secondaryBtn} href="/admin">
+              ← Назад
+            </Link>
+            <button
+              type="button"
+              className={s.secondaryBtn}
+              onClick={load}
+              disabled={isRefreshing}
+            >
+              {isRefreshing ? "Обновляем…" : "Обновить"}
+            </button>
+          </div>
         </div>
 
         {/* Десктопная таблица */}
         <div className={s.tableContainer}>
           <div
-            className={`${s.tableWrapper} ${
-              isRefreshing ? s.tableFading : ""
-            }`}
+            className={`${s.tableWrapper} ${isRefreshing ? s.tableFading : ""
+              }`}
           >
             <table className={s.table}>
               <thead>
@@ -292,7 +296,7 @@ export default function AdminFactoryOrdersPage() {
                   const isOpen = !!openOrders[id];
 
                   return (
-                    <>
+                    <React.Fragment key={id}>
                       <tr key={id}>
                         <td>{id}</td>
                         <td>
@@ -310,15 +314,14 @@ export default function AdminFactoryOrdersPage() {
                         <td>{formatDeliveryType(o.delivery_type)}</td>
                         <td>
                           <span
-                            className={`${s.statusBadge} ${
-                              o.status === "in_production"
-                                ? s.statusInProd
-                                : o.status === "ready_to_ship"
+                            className={`${s.statusBadge} ${o.status === "in_production"
+                              ? s.statusInProd
+                              : o.status === "ready_to_ship"
                                 ? s.statusReady
                                 : o.status === "delivered"
-                                ? s.statusDelivered
-                                : s.statusOther
-                            }`}
+                                  ? s.statusDelivered
+                                  : s.statusOther
+                              }`}
                           >
                             {formatStatus(o.status)}
                           </span>
@@ -349,7 +352,7 @@ export default function AdminFactoryOrdersPage() {
                                 const pv = it.productVariant;
                                 const name = pv?.product?.name ?? "";
                                 const material = pv?.material?.name
-                                  ? ` • ${pv.material.name}`
+                                  ? `  ${pv.material.name}`
                                   : "";
                                 const sku = pv?.sku ?? "—";
 
@@ -365,21 +368,11 @@ export default function AdminFactoryOrdersPage() {
                                     </div>
                                     <div className={s.itemMeta}>
                                       <span>SKU: {sku}</span>
-                                      <span>Кол-во: {it.quantity}</span>
+                                      <span>Количество: {it.quantity}</span>
                                       <span>
                                         Цена: {money(pv?.price)} BYN
                                       </span>
-                                      <span
-                                        className={
-                                          it.is_from_shop_stock
-                                            ? s.badgeStock
-                                            : s.badgeCustom
-                                        }
-                                      >
-                                        {it.is_from_shop_stock
-                                          ? "Со склада"
-                                          : "Под заказ"}
-                                      </span>
+
                                     </div>
                                   </div>
                                 );
@@ -388,7 +381,7 @@ export default function AdminFactoryOrdersPage() {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </React.Fragment>
                   );
                 })}
               </tbody>
@@ -419,15 +412,14 @@ export default function AdminFactoryOrdersPage() {
                       {new Date(o.created_at).toLocaleString("ru-RU")}
                     </span>
                     <span
-                      className={`${s.statusBadge} ${
-                        o.status === "in_production"
-                          ? s.statusInProd
-                          : o.status === "ready_to_ship"
+                      className={`${s.statusBadge} ${o.status === "in_production"
+                        ? s.statusInProd
+                        : o.status === "ready_to_ship"
                           ? s.statusReady
                           : o.status === "delivered"
-                          ? s.statusDelivered
-                          : s.statusOther
-                      }`}
+                            ? s.statusDelivered
+                            : s.statusOther
+                        }`}
                     >
                       {formatStatus(o.status)}
                     </span>
@@ -471,7 +463,7 @@ export default function AdminFactoryOrdersPage() {
                             )}
                           </div>
                           <div className={s.itemPillMeta}>
-                            SKU: {sku} • Кол-во: {it.quantity} • Цена:{" "}
+                            SKU: {sku}  Количество: {it.quantity}  Цена:{" "}
                             {money(pv?.price)} BYN
                           </div>
                           <div
@@ -542,6 +534,6 @@ export default function AdminFactoryOrdersPage() {
           </div>
         )}
       </div>
-    </section>
+    </section >
   );
 }

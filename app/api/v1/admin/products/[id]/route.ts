@@ -72,6 +72,25 @@ export async function PATCH(
 
     const data = parsed.data
 
+    // --- ПРОВЕРКА НА ДУБЛИКАТ НАЗВАНИЯ ---
+    if (data.name) {
+      const existingProduct = await prisma.products.findFirst({
+        where: {
+          name: data.name,
+          id: {
+            not: BigInt(productId) // исключаем текущий продукт
+          }
+        }
+      })
+
+      if (existingProduct) {
+        return NextResponse.json(
+          { message: 'Товар с таким названием уже существует' },
+          { status: 400 }
+        )
+      }
+    }
+
     // --- картинка (если передана) ---
     const file = formData.get('image') as File | null
     let image_path: string | undefined

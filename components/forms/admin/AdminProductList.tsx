@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/useToast'
 import s from './AdminProductList.module.css'
 import type { Product } from '@/types/product'
 import EditProductModal from './EditProductModal'
+import Link from 'next/link'
 
 export default function AdminProductsList() {
   const [products, setProducts] = useState<Product[]>([])
@@ -51,10 +52,11 @@ export default function AdminProductsList() {
     <section className={s.wrapper}>
       <div className={s.card}>
         <div className={s.headerRow}>
-          <h2 className={s.title}>Все товары</h2>
-          {isRefreshing && (
-            <span className={s.refreshBadge}>Обновляем…</span>
-          )}
+         
+            <h2 className={s.title}>Все товары</h2>
+            <Link className={s.secondaryBtn} href="/admin">
+              ← Назад
+            </Link>
         </div>
 
         {products.length === 0 ? (
@@ -63,11 +65,10 @@ export default function AdminProductsList() {
           </div>
         ) : (
           <>
-            {/* DESKTOP / TABLET: таблица */}
+            {/* DESKTOP таблица */}
             <div
-              className={`${s.tableWrapper} ${
-                isRefreshing ? s.tableFading : ''
-              }`}
+              className={`${s.tableWrapper} ${isRefreshing ? s.tableFading : ''
+                }`}
             >
               <table className={s.table}>
                 <thead>
@@ -75,7 +76,7 @@ export default function AdminProductsList() {
                     <th>ID</th>
                     <th>Название</th>
                     <th>Категория</th>
-                    <th>Размеры (мм)</th>
+                    <th>Размеры (cм)</th>
                     <th>Материалы</th>
                     <th>Цены</th>
                     <th>Активность варианта</th>
@@ -114,7 +115,7 @@ export default function AdminProductsList() {
                           <ul className={s.colList}>
                             {p.variants.map((v) => (
                               <li key={v.id}>
-                                {Number(v.price).toFixed(2)} BYN
+                                {Number(v.price).toFixed(2)}
                               </li>
                             ))}
                           </ul>
@@ -166,7 +167,6 @@ export default function AdminProductsList() {
               </table>
             </div>
 
-            {/* MOBILE: карточки */}
             <div className={s.mobileList}>
               {products.map((p) => (
                 <div key={p.id} className={s.productCard}>
@@ -176,7 +176,7 @@ export default function AdminProductsList() {
                         {p.name || 'Без названия'}
                       </div>
                       <div className={s.productMeta}>
-                        ID {p.id} • {p.category || 'Без категории'}
+                        ID {p.id}  {p.category || 'Без категории'}
                       </div>
                     </div>
                     <div>

@@ -71,7 +71,6 @@ export default function AdminOrdersPage() {
             })
             const json = await readJsonOrThrow(res)
 
-            // защита от неожиданной формы ответа
             setData({
                 page: Number(json?.page ?? 1),
                 pageSize: Number(json?.pageSize ?? 20),
@@ -80,7 +79,6 @@ export default function AdminOrdersPage() {
             })
         } catch (e: any) {
             setErr(e?.message ?? 'Ошибка загрузки')
-            // чтобы не падать на map — держим корректный state
             setData((prev) => ({
                 ...prev,
                 orders: Array.isArray(prev.orders) ? prev.orders : [],
@@ -346,7 +344,7 @@ export default function AdminOrdersPage() {
 
                                 return (
                                     <tr key={o.id}>
-                                        <td className={s.mono}>{o.id}</td>
+                                        <td>{o.id}</td>
 
                                         <td>{new Date(o.created_at).toLocaleString('ru-RU')}</td>
 
@@ -362,7 +360,7 @@ export default function AdminOrdersPage() {
                                             <div className={s.cellSub}>{deliverySub}</div>
                                         </td>
 
-                                        <td className={s.mono}>{formatMoney(o.total_amount)}</td>
+                                        <td>{formatMoney(o.total_amount)}</td>
 
                                         <td>
                                             <span className={`${s.badge} ${s['st_' + o.status]}`}>
@@ -401,7 +399,7 @@ export default function AdminOrdersPage() {
                     </button>
 
                     <div className={s.pagerInfo}>
-                        Страница <b>{data.page}</b> • Показано <b>{orders.length}</b> из{' '}
+                        Страница <b>{data.page}</b>  Показано <b>{orders.length}</b> из{' '}
                         <b>{data.total}</b>
                     </div>
 

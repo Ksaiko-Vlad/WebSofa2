@@ -9,7 +9,7 @@ export interface UseCooldownReturn {
 }
 
 /**
- * useCooldown — простой хук для антиспама (например, для кнопок)
+
  * @param defaultSeconds 
  */
 

@@ -1,8 +1,8 @@
-// app/(public)/cart/page.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
 import { useCart } from '@/components/cart/CartProvider'
+import { useToast } from '@/hooks/useToast' // Импортируем хук
 import s from './CartPage.module.css'
 
 type Shop = {
@@ -49,6 +49,7 @@ const initialForm: CheckoutFormState = {
 
 export default function CartPage() {
   const { items, totalPrice, setQuantity, removeItem, clear } = useCart()
+  const toast = useToast() // Получаем экземпляр Toast
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -69,6 +70,32 @@ export default function CartPage() {
     }
     loadShops()
   }, [])
+
+  const showClearCartNotification = () => {
+    toast.show({
+      title: 'Корзина очищена',
+      description: 'Все товары удалены из корзины',
+      duration: 3000,
+    })
+  }
+
+  const showRemoveItemNotification = (itemName: string) => {
+    toast.show({
+      title: 'Товар удален',
+      description: `${itemName} удален из корзины`,
+      duration: 3000,
+    })
+  }
+
+  const handleClearCart = () => {
+    clear()
+    showClearCartNotification()
+  }
+
+  const handleRemoveItem = (sku: string, itemName: string) => {
+    removeItem(sku)
+    showRemoveItemNotification(itemName)
+  }
 
   // если корзина пустая
   if (items.length === 0) {
@@ -91,11 +118,29 @@ export default function CartPage() {
 
   async function handleSubmitOrder(e: React.FormEvent) {
     e.preventDefault()
-    if (items.length === 0) return
+    if (items.length === 0) {
+      toast.show({
+        title: 'Корзина пуста',
+        description: 'Добавьте товары в корзину перед оформлением заказа',
+        duration: 4000,
+      })
+      return
+    }
 
     try {
       setLoading(true)
       setError(null)
+
+      // Валидация формы
+      if (form.deliveryType === 'pickup' && !form.shopId) {
+        toast.show({
+          title: 'Выберите магазин',
+          description: 'Пожалуйста, выберите магазин для самовывоза',
+          duration: 4000,
+        })
+        setLoading(false)
+        return
+      }
 
       const res = await fetch('/api/v1/orders/create', {
         method: 'POST',
@@ -133,12 +178,50 @@ export default function CartPage() {
 
       const data = await res.json()
 
-      if (!res.ok || !data.url) {
-        throw new Error(data?.message || 'Не удалось создать заказ / платеж')
+      if (!res.ok) {
+        // Обработка ошибок с бекенда
+        let errorMessage = data?.message || 'Не удалось создать заказ'
+        
+        // Если есть issues от zod валидации
+        if (data?.issues && Array.isArray(data.issues)) {
+          const firstIssue = data.issues[0]
+          errorMessage = `Не верно заполнены поля: ${firstIssue.path?.join('.') || ''} ${firstIssue.message || ''}`
+        }
+        
+        if (data?.details) {
+          errorMessage = `${errorMessage}: ${data.details}`
+        }
+        
+        toast.show({
+          title: 'Ошибка оформления заказа',
+          description: errorMessage,
+          duration: 5000,
+        })
+        
+        throw new Error(errorMessage)
       }
 
-      // редирект на Stripe Checkout
-      window.location.href = data.url
+      if (!data.url) {
+        toast.show({
+          title: 'Ошибка платежной системы',
+          description: 'Не удалось создать платежную сессию',
+          duration: 5000,
+        })
+        throw new Error('Не удалось создать платеж')
+      }
+
+      // Показываем уведомление об успешном создании заказа
+      toast.show({
+        title: 'Заказ оформлен!',
+        description: 'Переходим к оплате...',
+        duration: 3000,
+      })
+
+      // Небольшая задержка перед редиректом, чтобы пользователь увидел уведомление
+      setTimeout(() => {
+        window.location.href = data.url
+      }, 1000)
+
     } catch (e: any) {
       console.error(e)
       setError(e?.message ?? 'Ошибка оформления заказа')
@@ -185,7 +268,7 @@ export default function CartPage() {
 
               <button
                 className={s.removeBtn}
-                onClick={() => removeItem(item.sku)}
+                onClick={() => handleRemoveItem(item.sku, item.name)}
               >
                 ✕
               </button>
@@ -202,7 +285,7 @@ export default function CartPage() {
 
       {/* Кнопки под корзиной */}
       <div className={s.actions}>
-        <button className={s.secondary} onClick={clear}>
+        <button className={s.secondary} onClick={handleClearCart}>
           Очистить корзину
         </button>
 
@@ -370,8 +453,6 @@ export default function CartPage() {
             rows={3}
             className={s.formTextarea}
           />
-
-          {error && <p className={s.error}>{error}</p>}
 
           <div className={s.checkoutFooter}>
             <div>

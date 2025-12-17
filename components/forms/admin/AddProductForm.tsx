@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/useToast'
 import { createProductSchema, type CreateProductDto } from '@/server/validations/product'
 import type { MaterialsForProductAdding } from '@/types/material'
 import s from './AddProductForm.module.css'
+import Link from 'next/link'
 
 export default function AddProductForm() {
   const [form, setForm] = useState<CreateProductDto>({
@@ -103,7 +104,6 @@ export default function AddProductForm() {
     <div className={s.wrapper}>
       <div className={s.card}>
         <h2 className={s.title}>Добавление нового товара</h2>
-
         <form className={s.form} onSubmit={handleSubmit}>
           <label className={s.field}>
             <span className={s.label}>Название</span>
@@ -144,9 +144,9 @@ export default function AddProductForm() {
 
           <div className={s.dimensions}>
             {[
-              { label: 'Ширина (мм)', key: 'width_mm' },
-              { label: 'Высота (мм)', key: 'height_mm' },
-              { label: 'Глубина (мм)', key: 'depth_mm' },
+              { label: 'Ширина (см)', key: 'width_mm' },
+              { label: 'Высота (см)', key: 'height_mm' },
+              { label: 'Глубина (см)', key: 'depth_mm' },
             ].map(({ label, key }) => (
               <label key={key} className={s.field}>
                 <span className={s.label}>{label}</span>
@@ -178,6 +178,7 @@ export default function AddProductForm() {
             <label className={s.field}>
               <span className={s.label}>Изображение</span>
               <input
+                className={s.pick}
                 type="file"
                 accept="image/*"
                 onChange={(e) =>
@@ -195,9 +196,8 @@ export default function AddProductForm() {
                 return (
                   <label
                     key={m.id}
-                    className={`${s.materialCard} ${
-                      checked ? s.materialCard__selected : ''
-                    }`}
+                    className={`${s.materialCard} ${checked ? s.materialCard__selected : ''
+                      }`}
                   >
                     <input
                       type="checkbox"
@@ -212,9 +212,9 @@ export default function AddProductForm() {
                           materials: exists
                             ? form.materials.filter((sel) => sel.id !== m.id)
                             : [
-                                ...form.materials,
-                                { id: m.id, price_per_mm3: m.price_per_mm3 },
-                              ],
+                              ...form.materials,
+                              { id: m.id, price_per_mm3: m.price_per_mm3 },
+                            ],
                         })
                       }}
                     />
@@ -228,7 +228,7 @@ export default function AddProductForm() {
                             currency: 'BYN',
                             maximumFractionDigits: 2,
                           })}{' '}
-                          <span className={s.perUnit}>/ м³</span>
+                          <span className={s.perUnit}>/ см</span>
                         </span>
                       )}
                     </span>
